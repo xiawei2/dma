@@ -59,6 +59,7 @@ public:
 	 * Expects that all the libraries are in the root dir
 	 */
 	Memory();
+    Memory(std::string process_name, bool memMap = true, bool debug = false);
 	~Memory();
 
 	/**
@@ -106,8 +107,8 @@ public:
 
 	/**
 	* \brief Gets the module list of the process
-	* \param process_name the name of the process 
-	* \return all the module names of the process 
+	* \param process_name the name of the process
+	* \return all the module names of the process
 	*/
 	std::vector<std::string> GetModuleList(std::string process_name);
 
@@ -119,7 +120,7 @@ public:
 
 	/**
 	* \brief Gets the process peb
-	* \return the process peb 
+	* \return the process peb
 	*/
 	PEB GetProcessPeb();
 
@@ -176,7 +177,7 @@ public:
 	/**
 	 * \brief Scans the process for the signature.
 	 * \param signature the signature example "48 ? ? ?"
-	 * \param range_start Region to start scan from 
+	 * \param range_start Region to start scan from
 	 * \param range_end Region up to where it should scan
 	 * \param PID (OPTIONAL) where to read to?
 	 * \return address of signature
@@ -184,11 +185,11 @@ public:
 	uint64_t FindSignature(const char* signature, uint64_t range_start, uint64_t range_end, int PID = 0);
 
 	/**
-	 * \brief Writes memory to the process 
+	 * \brief Writes memory to the process
 	 * \param address The address to write to
 	 * \param buffer The buffer to write
 	 * \param size The size of the buffer
-	 * \return 
+	 * \return
 	 */
 	bool Write(uintptr_t address, void* buffer, size_t size) const;
 	bool Write(uintptr_t address, void* buffer, size_t size, int pid) const;
@@ -292,7 +293,7 @@ public:
 	/**
 	 * \brief Adds a scatter read/write request to the handle
 	 * \param handle the handle
-	 * \param address the address to read/write to 
+	 * \param address the address to read/write to
 	 * \param buffer the buffer to read/write to
 	 * \param size the size of buffer
 	 */
@@ -302,14 +303,36 @@ public:
 	/**
 	 * \brief Executes all prepared scatter requests, note if you created a scatter handle with a pid
 	 * you'll need to specify the pid in the execute function. so we can clear the scatters from the handle.
-	 * \param handle 
-	 * \param pid 
+	 * \param handle
+	 * \param pid
 	 */
 	void ExecuteReadScatter(VMMDLL_SCATTER_HANDLE handle, int pid = 0);
 	void ExecuteWriteScatter(VMMDLL_SCATTER_HANDLE handle, int pid = 0);
 
+    int readInt(int64_t address){
+        return Read<int>(address);
+    }
+    int64_t readLong(int64_t address){
+        return Read<int64_t>(address);
+    }
+    short readShort(int64_t address){
+        return Read<short>(address);
+    }
+    double readDouble(int64_t address){
+        return Read<double>(address);
+    }
+    BYTE readByte(int64_t address){
+        return Read<BYTE>(address);
+    }
+    std::vector<BYTE> readBytes(int64_t address){
+        return Read<std::vector<BYTE>>(address);
+    }
 	/*the FPGA handle*/
 	VMM_HANDLE vHandle;
 };
 
-inline Memory mem;
+inline Memory mem{
+    "DNF.exe",
+    true,
+    false
+};

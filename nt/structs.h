@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 typedef struct _PEB_LDR_DATA
 {
 	BYTE Reserved1[8];

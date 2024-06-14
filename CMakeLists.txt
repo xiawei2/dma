@@ -19,7 +19,20 @@ add_executable(dma
         framework.h
         pch.cpp
         pch.h
-        vmmdll_example.c)
+        vmmdll_example.c
+        game/stat.cpp
+        main.cpp
+        main.h
+        main.cpp
+        game/Position.h
+        game/stat.cpp
+        game/Position.h
+        game/Position.cpp
+        game/MapData.cpp
+        game/MapData.h
+        game/utils.cpp
+        game/utils.h)
 target_link_libraries(dma
 leechcore.lib
 vmm.lib)
+

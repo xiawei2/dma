@@ -7,6 +7,7 @@
 
 Memory::Memory()
 {
+    system("chcp 65001");
 	LOG("加载模块...\n");
 	modules.VMM = LoadLibraryA("vmm.dll");
 	modules.FTD3XX = LoadLibraryA("FTD3XX.dll");
@@ -19,10 +20,29 @@ Memory::Memory()
 		LOG("leech: %p\n", modules.LEECHCORE);
 		THROW("[!] Could not load a library\n");
 	}
-
 	this->key = std::make_shared<c_keys>();
-
 	LOG("加载模块成功!\n");
+}
+Memory::Memory(std::string process_name, bool memMap, bool debug)
+{
+    system("chcp 65001");
+    LOG("加载模块...\n");
+    modules.VMM = LoadLibraryA("vmm.dll");
+    modules.FTD3XX = LoadLibraryA("FTD3XX.dll");
+    modules.LEECHCORE = LoadLibraryA("leechcore.dll");
+
+    if (!modules.VMM || !modules.FTD3XX || !modules.LEECHCORE)
+    {
+        LOG("vmm: %p\n", modules.VMM);
+        LOG("ftd: %p\n", modules.FTD3XX);
+        LOG("leech: %p\n", modules.LEECHCORE);
+        THROW("[!] Could not load a library\n");
+    }
+
+    this->key = std::make_shared<c_keys>();
+    this->Init(process_name, memMap, debug);
+    this->GetKeyboard()->InitKeyboard();
+    LOG("加载模块成功!\n");
 }
 
 
@@ -850,3 +870,4 @@ void Memory::ExecuteWriteScatter(VMMDLL_SCATTER_HANDLE handle, int pid)
 		LOG("[-] Failed to clear Scatter\n");
 	}
 }
+
