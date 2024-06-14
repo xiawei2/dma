@@ -29,7 +29,7 @@
 #include <string>
 #include <fstream>
 #include <time.h>
-#include "address.h"
+
 #include "../Memory/Memory.h"
 #include "utils.h"
 using namespace std;
@@ -46,5 +46,5 @@ public:
     int x;
 };
 int decode(int64_t address);
-
+std::string WideStringToString(const std::wstring& wstr);
 #endif //DMA_坐标型_H

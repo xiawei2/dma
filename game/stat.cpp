@@ -2,7 +2,7 @@
 // Created by 17129 on 2024/6/14.
 //
 #include "stat.h"
-
+#include "address.h"
 int GetGameStat()
 {
     return mem.Read<int>( 游戏状态);
@@ -31,7 +31,6 @@ bool IsBossRoom() {
     auto position =GetCutRoom();
     auto bossPosition = GetBossRoom();
     return ArePointsEqual(position,bossPosition);
-    return false;
 }
 
 bool ContainsItem() {
@@ -70,9 +69,8 @@ INT GetItemNum(int ItemId) {
 }
 
 std::wstring GetMapName() {
-    long roomData = mem.readLong(mem.readLong(mem.readLong(房间编号)+时间基址)+门型偏移);
-    auto data =mem.readBytes(mem.readLong(roomData+地图名称),52);
-
+    auto roomData = mem.readLong(mem.readLong(mem.readLong(房间编号)+时间基址)+门型偏移);
+    auto data =mem.readBytes(mem.readLong(roomData + 地图名称), 52);
     return UnicodeToAnsi(data);
 }
 

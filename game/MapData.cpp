@@ -1,7 +1,7 @@
 //
 // Created by 17129 on 2024/6/14.
 //
-
+#include "address.h"
 #include "MapData.h"
 Position GetCutRoom(){
     auto roomData = mem.readLong(mem.readLong(mem.readLong(房间编号)+时间基址)+门型偏移);

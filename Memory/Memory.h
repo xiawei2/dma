@@ -211,14 +211,20 @@ public:
 		Write(address, &value, sizeof(T));
 	}
 
-	/**
-	* brief Reads memory from the process
-	* @param address The address to read from
-	* @param buffer The buffer to read to
-	* @param size The size of the buffer
-	* @return true if successful, false if not.
-	*/
-	bool Read(uintptr_t address, void* buffer, size_t size) const;
+
+    /**
+     * 从进程中读取内存
+     *
+     * 此函数旨在进行跨进程的内存读取操作。它尝试从当前进程的指定地址读取特定数量的内存，
+     * 并将其存储在提供的缓冲区中。常用于调试或内存检查工具。
+     *
+     * @param address 进程内存空间中的起始地址，从此处开始读取。
+     * @param buffer 指向缓冲区的指针，读取的内存数据将被存储在此处。
+     * @param size 要读取的字节数。
+     * @return 如果内存读取操作成功，则返回true；如果发生错误（如地址无效或读取权限不足），则返回false。
+     */
+    bool Read(uintptr_t address, void* buffer, size_t size) const;
+
 	bool Read(uintptr_t address, void* buffer, size_t size, int pid) const;
 
 	/**
@@ -264,18 +270,29 @@ public:
 		return Read<T>(reinterpret_cast<void*>(address), pid);
 	}
 
-	/**
-	* brief Reads a chain of offsets from the address
-	* @param address The address to read from
-	* @param a vector of offset values to read through
-	* @return the value read from the chain
-	*/
+		/**
+	 * @brief 从指定的基础地址开始读取偏移量链，以获取最终值
+	 * @param base 起始读取地址
+	 * @param offsets 一系列偏移量值，按顺序使用以计算下一次读取的地址
+	 * @return 经过偏移量链遍历后读取到的值
+	 *
+	 * 该函数首先读取基础地址加上第一个偏移量所得地址处的值，
+	 * 然后使用这个值作为新的基础地址，加上第二个偏移量读取下一个值，以此类推。
+	 * 它主要用于数据以链式或链接结构存储的场景中，需要根据当前数据计算下一块数据的地址。
+	 */
 	uint64_t ReadChain(uint64_t base, const std::vector<uint64_t>& offsets)
 	{
+		// 从基础地址加上第一个偏移量的位置读取第一块数据
 		uint64_t result = Read<uint64_t>(base + offsets.at(0));
-		for (int i = 1; i < offsets.size(); i++) result = Read<uint64_t>(result + offsets.at(i));
+		// 从第二个偏移量开始，依次使用之前读取的数据作为基础地址读取后续数据
+		for (int i = 1; i < offsets.size(); i++)
+		{
+			result = Read<uint64_t>(result + offsets.at(i));
+		}
+		// 返回最终读取到的值
 		return result;
 	}
+
 
 	/**
 	 * \brief Create a scatter handle, this is used for scatter read/write requests
@@ -324,8 +341,15 @@ public:
     BYTE readByte(int64_t address){
         return Read<BYTE>(address);
     }
-    std::vector<BYTE> readBytes(int64_t address){
-        return Read<std::vector<BYTE>>(address);
+    std::vector<BYTE> readBytes(int64_t address,int size){
+        auto target = std::unique_ptr<BYTE[]>(new uint8_t[size]);
+        std::vector<BYTE> result;
+        //Read whole modules memory
+        Read(address, target.get(), size);
+        for (int i = 0; i < size; ++i) {
+            result.insert(result.end(), target[i]);
+        }
+        return result;
     }
 	/*the FPGA handle*/
 	VMM_HANDLE vHandle;

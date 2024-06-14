@@ -7,5 +7,10 @@
 #include <iostream>
 #include <cstdint>
 int main(){
-    std::cout << GetPL()<<std::endl;
+    auto wmapName = GetMapName();
+    std::string mapName = WideStringToString(wmapName);
+    std::cout << mapName<<std::endl;
+    std::wcout<< wmapName;
+    return 0;
 }
+

@@ -8,6 +8,10 @@
 int decode(int64_t address) {
     return mem.Read<int>(address);
 }
+std::string WideStringToString(const std::wstring& wstr) {
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
+    return myconv.to_bytes(wstr);
+}
 
 Position::Position(int i, int i1, int i2 ) {
     x=i;
