@@ -3,12 +3,18 @@
 ////
 //
 //#include "main.h"
-//#include "game/stat.h"
-//#include "game/Auto.h"
+//#include "stat.h"
+//#include "Auto.h"
+//#include "qt5vncclient.h"
 //#include <iostream>
 //#include <cstdint>
 //int main(){
-//    passMap();
-//    return 0;
+//    VncViewer viewer;
+//    char *argv[] = {"","127.0.0.1","5901"};
+//    Initialize(&viewer,argv);
+//    while (1){
+//        SendKeyEvent(viewer.cl,XK_0,true);
+//        SendKeyEvent(viewer.cl,XK_0,false);
+//    }
 //}
 //

@@ -41,6 +41,8 @@ add_executable(dma
         include/Auto.h
 
         backchannel.c
+        qt5vncclient.cpp
+        include/qt5vncclient.h
 )
 target_link_libraries(dma
 leechcore.lib
