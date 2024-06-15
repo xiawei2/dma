@@ -37,13 +37,15 @@ private:
 	*/
 	bool DumpMemoryMap(bool debug = false);
 
-	/**
-	* brief Removes basic information related to the FPGA device
-	* This is required before any DMA operations can be done.
-	* To ensure the optimal safety in game cheating.
-	* @return true if successful, false if not.
-	*/
-	bool SetDevice();
+
+/**
+ * 功能：移除与FPGA设备相关的基本信息
+ * 说明：在进行任何DMA操作之前，此步骤是必需的。
+ * 目的：确保在游戏作弊中的最高安全性。
+ * @return 成功则返回true，失败返回false。
+ */
+bool SetDevice();
+
 
 	//shared pointer
 	std::shared_ptr<c_keys> key;

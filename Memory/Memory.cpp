@@ -4,7 +4,9 @@
 #include <thread>
 #include <iostream>
 #include <filesystem>
-
+#include <tlhelp32.h>
+#include <tchar.h>
+#define _getch()  (getchar())
 Memory::Memory()
 {
     system("chcp 65001");
@@ -162,11 +164,35 @@ bool Memory::SetDevice()
 
 bool Memory::Init(std::string process_name, bool memMap, bool debug)
 {
+
+    // Function to get the process ID by process name
+    // 可能有多个进程名相同
+    std::vector<DWORD> processID ;
+    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (hSnapshot != INVALID_HANDLE_VALUE) {
+        PROCESSENTRY32 pe;
+        pe.dwSize = sizeof(PROCESSENTRY32);
+        if (Process32First(hSnapshot, &pe)) {
+            do {
+                if (_tcsicmp(pe.szExeFile, "vmware-vmx.exe") == 0) {
+                    std::cout<<"序号："+std::to_string(processID.size())+"-vmware-ID:"+std::to_string(pe.th32ProcessID)+"\n";
+                    processID.insert(processID.end(), pe.th32ProcessID);
+                }
+            } while (Process32Next(hSnapshot, &pe));
+        }
+        CloseHandle(hSnapshot);
+    }
+    int number = 0;
+    if (processID.size()>1){
+        std::cout << "请输入vmware序号: ";
+        std::cin >> number;
+    }
+    std::string device = "vmware://id="+std::to_string(processID[number]);
 	if (!DMA_INITIALIZED)
 	{
 		LOG("初始化中...\n");
 	reinit:
-		LPCSTR args[] = {const_cast<LPCSTR>(""), const_cast<LPCSTR>("-device"), const_cast<LPCSTR>("vmware://vm=0"), const_cast<LPCSTR>(""), const_cast<LPCSTR>(""), const_cast<LPCSTR>(""), const_cast<LPCSTR>("")};
+		LPCSTR args[] = {const_cast<LPCSTR>(""), const_cast<LPCSTR>("-device"), const_cast<LPCSTR>(device.c_str()), const_cast<LPCSTR>(""), const_cast<LPCSTR>(""), const_cast<LPCSTR>(""), const_cast<LPCSTR>("")};
 		DWORD argc = 3;
 		if (debug)
 		{
@@ -869,5 +895,11 @@ void Memory::ExecuteWriteScatter(VMMDLL_SCATTER_HANDLE handle, int pid)
 	{
 		LOG("[-] Failed to clear Scatter\n");
 	}
+}
+VOID ShowKeyPress()
+{
+    printf("PRESS ANY KEY TO CONTINUE ...\n");
+    Sleep(250);
+    _getch();
 }
 
