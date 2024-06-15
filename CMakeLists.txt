@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXE_LINKER_FLAGS "-static")
 
 link_directories(libs)
+include_directories(include)
 add_executable(dma
         Memory/InputManager.cpp
         Memory/InputManager.h
@@ -24,15 +25,26 @@ add_executable(dma
         main.cpp
         main.h
         main.cpp
-        game/Position.h
+        include/Position.h
         game/stat.cpp
-        game/Position.h
+        include/Position.h
         game/Position.cpp
         game/MapData.cpp
-        game/MapData.h
+        include/MapData.h
         game/utils.cpp
-        game/utils.h)
+        include/utils.h
+        game/GameCall.cpp
+        include/GameCall.h
+        game/GameMap.cpp
+        include/GameMap.h
+        game/Auto.cpp
+        include/Auto.h
+
+        backchannel.c
+)
 target_link_libraries(dma
 leechcore.lib
-vmm.lib)
+vmm.lib
+vncclient.lib)
+
 

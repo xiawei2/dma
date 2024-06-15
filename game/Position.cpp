@@ -12,6 +12,12 @@ std::string WideStringToString(const std::wstring& wstr) {
     std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
     return myconv.to_bytes(wstr);
 }
+int safeToIntExact(long long value) {
+    if (value > INT_MAX || value < INT_MIN) {
+        throw std::out_of_range("Value is out of int range");
+    }
+    return static_cast<int>(value);
+}
 
 Position::Position(int i, int i1, int i2 ) {
     x=i;

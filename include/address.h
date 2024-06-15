@@ -299,7 +299,7 @@ constexpr auto 地图高度 = 0x000AE8;    // 2792   创新中心获取
 constexpr auto 地图边距_X = 0x000AE4;    // 2788   创新中心获取
 constexpr auto 地图边距_Y = 0x000AE8;    // 2792   创新中心获取
 constexpr auto 房间偏移 = 0x0000A0;    // 160   创新中心获取
-constexpr auto 地图偏移 = 0x000170;    // 368   创新中心获取
+constexpr auto 地图偏移 = 0x000168;    // 368   创新中心获取
 constexpr auto 地图开始 = 0x000028;    // 40   创新中心获取
 constexpr auto 地图结束 = 0x000030;    // 48   创新中心获取
 constexpr auto 地图偏移2 = 0x000170;    // 368   创新中心获取
@@ -812,3 +812,9 @@ constexpr auto 纯白色基址 = 0xFFFFFFF0;    // 4294967280   创新中心获�
 constexpr auto 红色基址 = 0xFF0000FF;    // 4278190335   创新中心获取
 constexpr auto 淡红色基址 = 0xFF8F00FF;    // 4287561983   创新中心获取
 constexpr auto 系统色基址 = 0xFF9BC8E6;    // 4288399590   创新中心获取
+
+constexpr auto 人物空白地址 = 人物基址B;    // 4288399590   创新中心获取
+constexpr auto 内存汇编空白地址 = 0;    // 4288399590   创新中心获取
+constexpr auto  技能CALL空白地址= 0;    // 4288399590   创新中心获取
+constexpr auto 过图CALL空白 = 0;    // 4288399590   创新中心获取
+

@@ -13,3 +13,7 @@ class utils {
 #endif //DMA_UTILS_H
 std::wstring UnicodeToAnsi(std::vector<BYTE> bytes);
 
+
+void split(const std::wstring& str, std::vector<std::wstring>& tokens, const std::wstring& delimiters);
+
+

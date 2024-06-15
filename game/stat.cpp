@@ -3,34 +3,34 @@
 //
 #include "stat.h"
 #include "address.h"
-int GetGameStat()
-{
-    return mem.Read<int>( 游戏状态);
+
+int GetGameStat() {
+    return mem.Read<int>(游戏状态);
 
 }
 
 int GetPL() {
-    return decode(最大疲劳)- decode(当前疲劳);
+    return decode(最大疲劳) - decode(当前疲劳);
 }
 
 bool IsTown() {
-    return mem.readInt(GetPersonPrt()+地图偏移);
+    return mem.readInt(GetPersonPrt() + 地图偏移);
 }
 
 int64_t GetPersonPrt() {
-    return 人物基址B;
+    return mem.readLong(人物基址B);
 }
 
 bool IsOpenDoor() {
     auto ptr = GetPersonPrt();
     auto encodedata = mem.readInt(ptr + 地图偏移);
-    return decode(encodedata+是否开门) ==0;
+    return decode(encodedata + 是否开门) == 0;
 }
 
 bool IsBossRoom() {
-    auto position =GetCutRoom();
+    auto position = GetCutRoom();
     auto bossPosition = GetBossRoom();
-    return ArePointsEqual(position,bossPosition);
+    return ArePointsEqual(position, bossPosition);
 }
 
 bool ContainsItem() {
@@ -42,7 +42,7 @@ bool FtilterItem(std::string ItemName) {
 }
 
 bool ArePointsEqual(Position index1, Position index2) {
-    if (index1.z == index2.z&&index1.x == index2.x&&index1.y == index2.y){
+    if (index1.z == index2.z && index1.x == index2.x && index1.y == index2.y) {
         return true;
     }
     return false;
@@ -52,16 +52,15 @@ bool ContainsMonster() {
     return false;
 }
 
+
 int GetLevel() {
-    return 0;
+    return mem.readInt(角色等级);
 }
 
-Position GetPosition(long long int ptr) {
-    return Position();
-}
+
 
 INT GetGold() {
-    return 0;
+//    return decode(mem.readLong(mem.readLong(背包基址)+背包偏移));
 }
 
 INT GetItemNum(int ItemId) {
@@ -69,18 +68,36 @@ INT GetItemNum(int ItemId) {
 }
 
 std::wstring GetMapName() {
-    auto roomData = mem.readLong(mem.readLong(mem.readLong(房间编号)+时间基址)+门型偏移);
-    auto data =mem.readBytes(mem.readLong(roomData + 地图名称), 52);
+    auto roomData = mem.readLong(mem.readLong(mem.readLong(房间编号) + 时间基址) + 门型偏移);
+    auto data = mem.readBytes(mem.readLong(roomData + 地图名称), 52);
     return UnicodeToAnsi(data);
 }
 
 bool IsPass() {
-    auto roomData = mem.readLong(mem.readLong(mem.readLong(房间编号)+时间基址)+门型偏移);
-    auto dataVal = mem.readInt(roomData+篝火判断);
-    return dataVal == 0|| dataVal == 2;
+    auto roomData = mem.readLong(mem.readLong(mem.readLong(房间编号) + 时间基址) + 门型偏移);
+    auto dataVal = mem.readInt(roomData + 篝火判断);
+    return dataVal == 0 || dataVal == 2;
 }
 
 int GetRoleLevel() {
     return mem.readInt(角色等级);
 }
+int GetFame(){
+    return mem.readInt(GetPersonPrt()+人物名望);
+}
+INT GetBagWeight(){
+    auto personPtr = GetPersonPrt();
+    auto data = mem.readLong(personPtr + 物品栏);
+    int cutWeight = decode(data  +0x58);
+    int maxWeight = decode(data + 最大负重);
+    float result = (float)cutWeight / (float)maxWeight*100;
+    return (int)result;
+}
+INT GetPersonState(){
+    return mem.readInt(GetPersonPrt()+动作ID);
+}
+
+
+
+
 

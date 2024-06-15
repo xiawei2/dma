@@ -11,11 +11,19 @@
 #endif //DMA_判断_H
 #pragma once
 
-
+/**
+ * 游戏状态
+ *
+ * @return int 0选角 1城镇 2选图 3图内 5选择频道
+ */
 int GetGameStat();
 
 int GetPL();
-
+/**
+  * 是否城镇
+  *
+  * @return boolean
+  */
 bool IsTown();
 
 bool IsOpenDoor();
@@ -36,7 +44,6 @@ int GetLevel();
 
 bool IsPass();
 
-Position GetPosition(long long ptr);
 
 int GetRoleLevel();
 
@@ -44,9 +51,18 @@ INT GetGold();
 
 INT GetItemNum(int ItemId);
 
-
-
 std::wstring GetMapName();
+/**
+ * 获取名望
+ * @return
+ */
+INT GetFame();
+/**
+ * 获取背包负重
+ */
+ INT GetBagWeight();
+//0站立、6跳跃、8普攻、14跑动
+INT GetPersonState();
 
 
 

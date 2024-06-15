@@ -341,6 +341,9 @@ public:
     BYTE readByte(int64_t address){
         return Read<BYTE>(address);
     }
+    float readFloat(int64_t address){
+        return Read<float>(address);
+    }
     std::vector<BYTE> readBytes(int64_t address,int size){
         auto target = std::unique_ptr<BYTE[]>(new uint8_t[size]);
         std::vector<BYTE> result;
