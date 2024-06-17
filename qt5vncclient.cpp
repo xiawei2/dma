@@ -97,6 +97,20 @@ void VncViewer::start()
         };
     });
 }
+
+void VncViewer::KeyPressDown(uint32_t key) {
+    SendKeyEvent(cl,key, true);
+}
+void VncViewer::KeyPressUp(uint32_t key) {
+    SendKeyEvent(cl,key, false);
+}
+void VncViewer::MouseMove(int x, int y) {
+    MouseButton(x,y,0,false);
+}
+
+
+
+
 //char *argv[] = {"","127.0.0.1","5901"};
 void Initialize(VncViewer *vncViewer,char *argv[])
 {

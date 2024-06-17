@@ -4,14 +4,14 @@
 
 #ifndef DMA_AUTO_H
 #define DMA_AUTO_H
-
-#include "Position.h"
-#include "stat.h"
+#include "allHeader.h"
+#include "Coordinate.h"
 #include "address.h"
+#include "MapData.h"
 #include "GameMap.h"
 class Auto {
 
 };
-void passMap();
+//void passMap();
 
 #endif //DMA_AUTO_H

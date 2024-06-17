@@ -21,14 +21,10 @@ add_executable(dma
         pch.cpp
         pch.h
         vmmdll_example.c
-        game/stat.cpp
         main.cpp
         main.h
         main.cpp
-        include/Position.h
-        game/stat.cpp
-        include/Position.h
-        game/Position.cpp
+        include/Coordinate.h
         game/MapData.cpp
         include/MapData.h
         game/utils.cpp
@@ -43,6 +39,11 @@ add_executable(dma
         backchannel.c
         qt5vncclient.cpp
         include/qt5vncclient.h
+        include/GameMove.h
+        game/GameMove.cpp
+        include/allHeader.h
+        include/allHeader.cpp
+        game/Coordinate.cpp
 )
 target_link_libraries(dma
 leechcore.lib

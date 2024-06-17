@@ -2,8 +2,12 @@
 // Created by 17129 on 2024/6/14.
 //
 
+#include <random>
+#include <locale>
+#include <codecvt>
+#include <stringapiset.h>
 #include "utils.h"
-wstring UnicodeToAnsi(vector<BYTE> bytes)
+std::wstring UnicodeToAnsi(std::vector<BYTE> bytes)
 {
     DWORD size = bytes.size();
     CHAR* Unicode = new CHAR[size];
@@ -28,7 +32,7 @@ wstring UnicodeToAnsi(vector<BYTE> bytes)
     return pResult;
 }
 #include "utils.h"
-wstring UnicodeToAnsi(vector<PBYTE> bytes)
+std::wstring UnicodeToAnsi(std::vector<PBYTE> bytes)
 {
     DWORD size = bytes.size();
     CHAR* Unicode = new CHAR[size];
@@ -67,4 +71,32 @@ void split(const std::wstring& str, std::vector<std::wstring>& tokens, const std
         // Find next "non-delimiter"
         pos = str.find_first_of(delimiters, lastPos);
     }
+}
+
+
+int rnd(int min, int max) {
+    static std::random_device rd;  // 用于获取随机数的种子
+    static std::mt19937 gen(rd()); // 使用Mersenne Twister算法生成随机数
+    std::uniform_int_distribution<> dis(min, max); // 定义均匀分布的范围为[min, max]
+
+    return dis(gen);
+}
+bool ArePointsEqual(Coordinate index1, Coordinate index2) {
+    if (index1.z == index2.z && index1.x == index2.x && index1.y == index2.y) {
+        return true;
+    }
+    return false;
+}
+std::string WideStringToString(const std::wstring& wstr);
+int safeToIntExact(long long value);
+
+std::string WideStringToString(const std::wstring& wstr) {
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
+    return myconv.to_bytes(wstr);
+}
+int safeToIntExact(long long value) {
+    if (value > INT_MAX || value < INT_MIN) {
+        throw std::out_of_range("Value is out of int range");
+    }
+    return static_cast<int>(value);
 }
