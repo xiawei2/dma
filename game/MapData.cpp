@@ -13,7 +13,7 @@
 
 MapTraversalType MapData::GetMapData() {
     MapTraversalType result = MapTraversalType();
-    result.rwAddr = mem.readLong(人物空白地址);
+    result.rwAddr = GetPersonPtr();
     result.mapData = mem.readLong(mem.readLong(result.rwAddr + 地图偏移 - 8) + 16);
     result.start = mem.readLong(result.mapData + 地图开始2);
     result.end = mem.readLong(result.mapData + 地图结束2);
@@ -72,24 +72,27 @@ vector<Coordinate> MapData::GetItemData() {
     for (data.objTmp = 1; data.objTmp < data.objNum; data.objTmp++) {
         data.objPtr = GetTraversalPtr(data.start, data.objTmp, 2);
         data.objTypeA = mem.readInt(data.objPtr + 类型偏移);
+        data.objTypeB = mem.readInt(data.objPtr + 类型偏移+4);
         data.objCamp = mem.readInt(data.objPtr + 阵营偏移);
         if ((data.objTypeA == 289 || data.objTypeB == 289) && data.objCamp == 200) {
             auto itemNamePtr = mem.readLong(mem.readLong(data.objPtr + 地面物品) + 物品名称);
             auto itemNameBytes = mem.readBytes(itemNamePtr, 100);
             // 物品名称
+            Coordinate position = GetPosition(data.objPtr);
+
             auto itemName = UnicodeToAnsi(itemNameBytes);
             // 物品名称在过滤列表中
             if (find(items.begin(), items.end(), itemName) != items.end()) {
                 continue;
             }
+            printf("物体名称: 【%s】，类型：【%d】，坐标：【%d,%d】\n", WideStringToString(itemName).c_str(), data.objTypeA, position.x,
+                   position.y);
             // 物体代码
             data.objCode = mem.readInt(data.objPtr + 代码偏移);
             // 物体血量
             data.objBlodd = mem.readInt(data.objPtr + 怪物血量);
             if (data.objCamp > 0 && data.objPtr != data.rwAddr) {
-                    Coordinate position = GetPosition(data.objPtr);
-                    LOG("物体名称: 【%s】，类型：【%d】，坐标：【%d,%d】\n", WideStringToString(itemName).c_str(), data.objTypeA, position.x,
-                        position.y);
+
                     result.insert(result.end(), position);
             }
         }

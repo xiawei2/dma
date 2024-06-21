@@ -85,6 +85,12 @@ public:
 
 
     void passMap();
+
+    void move(int x1, int y1, int type);
+
+    bool PickItem();
+
+
 };
 inline GameMap gameMap;
 

@@ -3,7 +3,7 @@
 #include "InputManager.h"
 #include "Registry.h"
 #include "Shellcode.h"
-#include "../nt/structs.h"
+#include "structs.h"
 
 class Memory
 {

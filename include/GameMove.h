@@ -8,9 +8,9 @@
 #include <time.h>
 #include <valarray>
 #include "keysym.h"
-#include "qt5vncclient.h"
 #include "utils.h"
 #include "allHeader.h"
+#include "qt5vncclient.h"
 
 
 #endif //DMA_GAMEMOVE_H

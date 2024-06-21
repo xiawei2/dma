@@ -3,24 +3,25 @@
 //
 #include "address.h"
 #include "GameMap.h"
+#include "MapData.h"
 
 static long long int speed;
 
 MapDataType GameMap::GetMapDataType() {
-    MapDataType data =  MapDataType();
-    auto roomData = mem.readLong(mem.readLong(mem.readLong(房间编号) +时间基址) + 门型偏移);
-    auto roomIndex = decode(roomData +索引偏移);
+    MapDataType data = MapDataType();
+    auto roomData = mem.readLong(mem.readLong(mem.readLong(房间编号) + 时间基址) + 门型偏移);
+    auto roomIndex = decode(roomData + 索引偏移);
 
     data.width = mem.readInt(mem.readLong(roomData + 宽高偏移) + roomIndex * 8);
     data.height = mem.readInt(mem.readLong(roomData + 宽高偏移) + roomIndex * 8 + 4);
     data.tmp = mem.readLong(mem.readLong(roomData + 数组偏移) + 32 * roomIndex + 8);
     data.channelNum = data.width * data.height;
     for (int i = 0; i < data.channelNum; i++) {
-        data.mapChannel.insert(data.mapChannel.begin()+i, mem.readInt(data.tmp + i * 4L));
+        data.mapChannel.insert(data.mapChannel.begin() + i, mem.readInt(data.tmp + i * 4L));
     }
     auto cutRoom = GetCutRoom();
     auto bossRoom = GetBossRoom();
-    data.startCoordinate.x =  cutRoom.x+ 1;
+    data.startCoordinate.x = cutRoom.x + 1;
     data.startCoordinate.y = cutRoom.y + 1;
     data.endCoordinate.x = bossRoom.x + 1;
     data.endCoordinate.y = bossRoom.y + 1;
@@ -29,7 +30,8 @@ MapDataType GameMap::GetMapDataType() {
         return data;
     }
 
-    data.consumeFatigue = GetRoute(data.mapChannel, data.width, data.height, data.startCoordinate, data.endCoordinate, data.mapRoute);
+    data.consumeFatigue = GetRoute(data.mapChannel, data.width, data.height, data.startCoordinate, data.endCoordinate,
+                                   data.mapRoute);
     return data;
 }
 
@@ -79,7 +81,8 @@ std::vector<std::vector<GameMapType>> GameMap::GenMap(int width, int height, vec
     return gameMap;
 }
 
-std::vector<std::vector<GameMapType>> GameMap::DisplayMap(std::vector<std::vector<GameMapType>> mapArr, int width, int height) {
+std::vector<std::vector<GameMapType>>
+GameMap::DisplayMap(std::vector<std::vector<GameMapType>> mapArr, int width, int height) {
     std::vector<std::vector<GameMapType>> mapLabel(width * 3, std::vector<GameMapType>(height * 3));
 
     for (int x = 0; x < width * 3; x++) {
@@ -109,7 +112,8 @@ std::vector<std::vector<GameMapType>> GameMap::DisplayMap(std::vector<std::vecto
 }
 
 std::vector<Coordinate>
-GameMap::RouteCalculate(std::vector<std::vector<GameMapType>> mapLabel, Coordinate mapStart, Coordinate mapEnd, int width,
+GameMap::RouteCalculate(std::vector<std::vector<GameMapType>> mapLabel, Coordinate mapStart, Coordinate mapEnd,
+                        int width,
                         int height) {
     MapNodeType tmpNode = MapNodeType(); // 待检测节点, 临时节点
     std::vector<MapNodeType> openList = std::vector<MapNodeType>(); // 开放列表
@@ -170,12 +174,12 @@ GameMap::RouteCalculate(std::vector<std::vector<GameMapType>> mapLabel, Coordina
                 } while (waitHandleNode.currentCoordinates.x != mapStart.x ||
                          waitHandleNode.currentCoordinates.y != mapStart.y);
                 moveArr.insert(moveArr.begin(), mapStart);
-                moveArr.insert(moveArr.end(),mapEnd);
+                moveArr.insert(moveArr.end(), mapEnd);
                 return moveArr;
             }
         }
         for (int y = 0; y < 4; y++) {
-            Coordinate waitHandleCoordinate =  Coordinate(); // 待检测坐标
+            Coordinate waitHandleCoordinate = Coordinate(); // 待检测坐标
             if (y == 0) {
                 waitHandleCoordinate.x = tmpNode.currentCoordinates.x;
                 waitHandleCoordinate.y = tmpNode.currentCoordinates.y - 1;
@@ -221,7 +225,7 @@ GameMap::RouteCalculate(std::vector<std::vector<GameMapType>> mapLabel, Coordina
                     }
 
                     if (tmpNode.g + guessG < mapNodeType.g) {
-                        mapNodeType.finalCoordinates=tmpNode.currentCoordinates;
+                        mapNodeType.finalCoordinates = tmpNode.currentCoordinates;
                     }
 
                     existOpenList = true;
@@ -234,7 +238,7 @@ GameMap::RouteCalculate(std::vector<std::vector<GameMapType>> mapLabel, Coordina
             }
 
         }
-    } while (openList.size()!=0);
+    } while (openList.size() != 0);
     return moveArr;
 }
 
@@ -265,38 +269,41 @@ MapNodeType GameMap::GetMapNode(Coordinate mapEnd, Coordinate waitHandleCoordina
     /* 预估从等待处理坐标到当前节点的直线距离，用于计算G值 */
     int guessG;
     /* 如果等待处理的坐标在当前节点的x或y轴上与当前节点相邻，则预估距离为10，否则为14 */
-    if (waitHandleCoordinate.x == tmpNode.currentCoordinates.x || waitHandleCoordinate.y == tmpNode.currentCoordinates.y) {
+    if (waitHandleCoordinate.x == tmpNode.currentCoordinates.x ||
+        waitHandleCoordinate.y == tmpNode.currentCoordinates.y) {
         guessG = 10;
     } else {
         guessG = 14;
     }
     /* 创建一个新的节点类型对象，用于表示等待处理的节点 */
-    MapNodeType waitHandleNode =  MapNodeType();
+    MapNodeType waitHandleNode = MapNodeType();
     /* 设置该节点的G值，即从起点到当前节点的预估费用 */
-    waitHandleNode.g=(tmpNode.g + guessG);
+    waitHandleNode.g = (tmpNode.g + guessG);
     /* 设置该节点的H值，即从当前节点到目标节点的预估直线距离 */
     /* 这里使用了地图坐标与实际坐标之间的换算关系，将坐标乘以10以适应特定的坐标系统 */
-    waitHandleNode.h=(safeToIntExact(safeToIntExact(mapEnd.x) - safeToIntExact(waitHandleCoordinate.x * 10L) + (mapEnd.y) - safeToIntExact(waitHandleCoordinate.y * 10L)));
+    waitHandleNode.h = (safeToIntExact(
+            safeToIntExact(mapEnd.x) - safeToIntExact(waitHandleCoordinate.x * 10L) + (mapEnd.y) -
+            safeToIntExact(waitHandleCoordinate.y * 10L)));
     /* 设置该节点的F值，即G值和H值之和，用于A*算法中节点的排序 */
-    waitHandleNode.f=(waitHandleNode.g + waitHandleNode.h);
+    waitHandleNode.f = (waitHandleNode.g + waitHandleNode.h);
     /* 设置该节点的当前坐标为等待处理的坐标 */
-    waitHandleNode.currentCoordinates=(waitHandleCoordinate);
+    waitHandleNode.currentCoordinates = (waitHandleCoordinate);
     /* 设置该节点的目标坐标为当前节点的坐标 */
-    waitHandleNode.finalCoordinates=(tmpNode.currentCoordinates);
+    waitHandleNode.finalCoordinates = (tmpNode.currentCoordinates);
     /* 返回计算出的等待处理节点的类型 */
     return waitHandleNode;
 }
 
 int GameMap::TidyCoordinate(std::vector<Coordinate> simulationRoute, std::vector<Coordinate> &realityRoute) {
     int x, y, k = 0;
-    for (Coordinate coordinateType : simulationRoute) {
+    for (Coordinate coordinateType: simulationRoute) {
         Coordinate tempCoordinates = Coordinate();
         x = (coordinateType.x + 2) % 3;
         y = (coordinateType.y + 2) % 3;
         if (x == 0 && y == 0) {
             tempCoordinates.x = (coordinateType.x + 2) / 3 - 1;
             tempCoordinates.y = (coordinateType.y + 2) / 3 - 1;
-            realityRoute.insert(realityRoute.begin()+k, tempCoordinates);
+            realityRoute.insert(realityRoute.begin() + k, tempCoordinates);
             k++;
         }
     }
@@ -348,16 +355,18 @@ double GameMap::GetSpeed() {
     double x1 = position.x;
     gameMove.vncViewer.KeyPress(XK_Left, 200);
     Coordinate personPositon1 = GetRolePosition();
-    temp = 200.0 / ( x1-personPositon1.x);
+    temp = 200.0 / (x1 - personPositon1.x);
     speed = temp;
     return temp;
 }
-double GameMap::GetMoveSpeed(){
+
+double GameMap::GetMoveSpeed() {
     if (speed > 20 || speed <= 0.1) {
         GetSpeed();
     }
     return speed;
 }
+
 /**
  * 跑动过图
  *
@@ -368,7 +377,11 @@ void GameMap::passMapByRun(int direction) {
     Coordinate cutRoom = GetCutRoom();
 
     Coordinate nowRomm = GetCutRoom();
-    while (nowRomm.x == cutRoom.x && nowRomm.y == cutRoom.y&&IsOpenDoor()){
+    while (nowRomm.x == cutRoom.x && nowRomm.y == cutRoom.y && IsOpenDoor()) {
+        if (PickItem()) {
+            continue;
+        }
+
 // 人物指针
         auto personPtr = GetPersonPtr();
         // 地图偏移
@@ -400,22 +413,27 @@ void GameMap::passMapByRun(int direction) {
             x = startX + endX / 2;
             y = startY;
         }
-        auto role = GetRolePosition();
         gameMove.moveSpeed = GetMoveSpeed();
-        gameMove.move(role.x, role.y, x, y, 2);
+        move(x, y, 2);
         Sleep(50);
-        if (!gameMove.delayMove) {
-            auto role = GetRolePosition();
-            gameMove.move(role.x, role.y, startX + endX / 2, startY, 1);
-        }
+        move(startX + endX / 2, startY, 1);
         nowRomm = GetCutRoom();
         Sleep(100);
+        if (!gameMove.delayMove) {
+            auto role = GetRolePosition();
+            move(startX + endX / 2, startY, 1);
+        }
     }
     gameMove.stopMove();
-
-
 }
 
+void GameMap::move(int x1, int y1, int type) {
+    auto role = GetRolePosition();
+
+    gameMove.moveSpeed = GetMoveSpeed();
+    gameMove.move(role.x, role.y, x1, y1, type);
+    Sleep(50);
+}
 
 
 void GameMap::passMap() {
@@ -450,6 +468,25 @@ void GameMap::passMap() {
 //        }
 
 }
+
+bool GameMap::PickItem() {
+    if (GetGameStat() != 3) {
+        return false;
+    }
+    vector<Coordinate> itemData = mapData.GetItemData();
+    if (itemData.size() > 0) {
+        auto itemPosition = mapData.GetNearestPosition(GetRolePosition(), itemData);
+        move(itemPosition.x, itemPosition.y, 2);
+        if (GetPersonItem()) {
+            gameMove.vncViewer.KeyPress(XK_X, rnd(50, 120));
+        }
+        PickItem();
+        return true;
+    }
+    return false;
+}
+
+
 
 
 

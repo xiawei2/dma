@@ -4,11 +4,16 @@
 #include "GameMove.h"
 #include "GameMap.h"
 #include "MapData.h"
+
 int main() {
-//    GameMap gameMap;
-    std::cout << "Hello, World!" << std::endl;
-    while (true){
+    GameMap gameMap;
+    while (true) {
+        std::vector<Coordinate> items = mapData.GetItemData();
+        for (int i = 0; i < items.size(); ++i) {
+            gameMap.move(items[i].x, items[i].y, 2);
+        }
         gameMap.passMap();
+        Sleep(50);
     }
 }
-
+//    std::cout << "Value: " << prt <<

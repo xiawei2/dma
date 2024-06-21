@@ -21,7 +21,12 @@ Coordinate DNFCommon::GetCutRoom() {
     };
 }
 int64_t DNFCommon::GetPersonPtr() {
-    return mem.readLong(人物基址B);
+    auto ptr = mem.readLong(新人物基址)-48;
+
+    if (ptr>0&&mem.readLong(人物基址B)==ptr){
+        return ptr;
+    }
+    return 0;
 }
 
 bool DNFCommon::IsBossRoom() {
@@ -133,4 +138,8 @@ Coordinate DNFCommon::GetPosition(long long int ptr) {
         auto data = mem.readLong(ptr + 方向偏移);
         return Coordinate(mem.readFloat(data + 32), mem.readFloat(data + +36), mem.readFloat(data + 40));
     }
+}
+
+bool DNFCommon::GetPersonItem() {
+    return (mem.readLong(mem.readLong(人物空白地址) +脚下物品) > 0);
 }

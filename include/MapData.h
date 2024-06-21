@@ -4,12 +4,13 @@
 
 #ifndef DMA_MAPDATA_H
 #define DMA_MAPDATA_H
+
 #include "allHeader.h"
 #include "Coordinate.h"
 #include "allHeader.h"
 
-class MapData: public DNFCommon{
-
+class MapData : public DNFCommon {
+public:
 /**
  * 取遍历指针
  *
@@ -51,5 +52,6 @@ class MapData: public DNFCommon{
 
     void passMapByRun(int direction);
 };
+
 inline MapData mapData;
 #endif //DMA_MAPDATA_H

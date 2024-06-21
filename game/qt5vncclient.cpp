@@ -96,6 +96,7 @@ void VncViewer::start()
             }
         };
     });
+    m_vncThread->detach();
 }
 
 void VncViewer::KeyPressDown(uint32_t key) {

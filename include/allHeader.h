@@ -5,18 +5,19 @@
 #ifndef DMA_ALLHEADER_H
 #define DMA_ALLHEADER_H
 #pragma once
+#include <windows.h>
 #include<stdio.h>
 #include<stdlib.h>
 #include<wchar.h>
 #include<locale.h>
 #include <tchar.h>
-#include <windows.h>
+
 #include <string>
 #include <cstring>
 #include <io.h>
 #include <shlobj.h>
 #include <tlhelp32.h>
-#include "../nt/structs.h"
+#include "structs.h"
 #include <psapi.h>
 #include <algorithm>
 #include <sstream>
@@ -25,17 +26,17 @@
 #include <tchar.h>
 #include <nb30.h>
 #include<process.h>
-#include<stdint.h>
+#include<cstdint>
 #include <vector>
-#include "../Memory/Memory.h"
+#include "Memory.h"
 #include "utils.h"
 //#include "GameMove.h"
 #pragma comment(lib, "netapi32.lib")
 #include "Coordinate.h"
-#include <windows.h>
+//#include <windows.h>
 #include <string>
 #include <fstream>
-#include <time.h>
+#include <ctime>
 #include "address.h"
 using namespace std;
 #endif //DMA_ALLHEADER_H
@@ -99,6 +100,7 @@ public:
     Coordinate GetRolePosition();
 
     static Coordinate GetPosition(long long int ptr);
+    bool GetPersonItem();
 };
 
 

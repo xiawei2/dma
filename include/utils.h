@@ -4,8 +4,13 @@
 
 #ifndef DMA_UTILS_H
 #define DMA_UTILS_H
+#include <windows.h>
+#include <random>
+#include <locale>
+#include <codecvt>
+#include <stringapiset.h>
 //#include "allHeader.h"
-#include <minwindef.h>
+//#include <minwindef.h>
 #include "Coordinate.h"
 class utils {
 
