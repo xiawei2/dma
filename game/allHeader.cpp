@@ -48,15 +48,36 @@ int DNFCommon::GetPL() {
 }
 
 bool DNFCommon::IsTown() {
-    return mem.readInt(GetPersonPtr() + 地图偏移);
+    return mem.readInt(GetPersonPtr() + 地图偏移-8); // 7度不需要-8
 }
 
-
+bool DNFCommon::IsSkillFlush(int index) {
+    auto skillPtr = GetPersonPtr();
+    skillPtr = mem.readLong(skillPtr + 技能栏);
+    skillPtr = mem.readLong(skillPtr + 技能栏偏移);
+    skillPtr = mem.readLong(mem.readLong(skillPtr + index*24)+16)-16;
+    return (GetFlushTime(skillPtr))==0;
+}
+int DNFCommon::GetSkillCD(int index) {
+    auto skillPtr = GetPersonPtr();
+    skillPtr = mem.readLong(skillPtr + 技能栏);
+    skillPtr = mem.readLong(skillPtr + 技能栏偏移);
+    skillPtr = mem.readLong(mem.readLong(skillPtr + index*24)+16)-16;
+    auto time = GetFlushTime(skillPtr);
+    auto lastKeyTime = mem.readInt(skillPtr+判断冷却_1);// 最后按键时间
+    auto eax = mem.readInt(skillPtr+判断冷却_2);
+    auto edi = mem.readInt(skillPtr+判断冷却_2 +4);
+    auto xmm1 = mem.readFloat(skillPtr+判断冷却_2 +8);
+    if (lastKeyTime==0){
+        return -1;
+    }
+    return (lastKeyTime  - edi) / xmm1;
+}
 
 bool DNFCommon::IsOpenDoor() {
 
     auto ptr = GetPersonPtr();
-    auto encodedata = mem.readLong(mem.readLong(ptr +地图偏移-8) + 16);
+    auto encodedata = mem.readLong(mem.readLong(ptr +地图偏移-16) + 16); // 7度要-8
     return decode(encodedata + 是否开门) == 0;
 }
 
@@ -143,3 +164,56 @@ Coordinate DNFCommon::GetPosition(long long int ptr) {
 bool DNFCommon::GetPersonItem() {
     return (mem.readLong(mem.readLong(人物空白地址) +脚下物品) > 0);
 }
+
+int DNFCommon::GetFlushTime(int64_t skillPtr) {
+    auto lastKeyTime = mem.readInt(skillPtr+判断冷却_1);// 最后按键时间
+    auto eax = mem.readInt(skillPtr+判断冷却_2);
+    auto edi = mem.readInt(skillPtr+判断冷却_2 +4);
+    auto xmm1 = mem.readFloat(skillPtr+判断冷却_2 +8);
+    auto ret = mem.readInt(冷却参数_1+mem.readInt(冷却参数_2+8)*4)+mem.readInt(冷却参数_2+16);
+    ret = (ret -eax)*(int)xmm1 + edi;
+//   auto ret = mem.readInt(冷却参数_1);
+    return ret - lastKeyTime-500>0?0:ret - lastKeyTime;
+}
+
+int DNFCommon::GetShop() {
+    return mem.readInt(通关商店);
+}
+
+bool DNFCommon::IsJiaBaiLi() {
+    auto shop = mem.readInt(通关商店);
+    return (shop ==1002||shop ==1003);
+}
+void DNFCommon::武器冰冻(int64_t 伤害){
+    bool static 开关=false;
+    int64_t 冰冻地址 = 全局空白+4848;//+8范围  +12频率  +16触发时间  +20触发几率  +24冰冻几率  +28伤害
+    if (!开关){
+        mem.Write(mem.readLong(GetPersonPtr()+武器偏移)+冰冻开始, 冰冻地址);
+        mem.Write(mem.readLong(GetPersonPtr()+武器偏移)+冰冻结束,冰冻地址+32);
+        mem.Write(冰冻地址+8,3000);// 范围
+        mem.Write(冰冻地址+12,100);// 频率
+        mem.Write(冰冻地址+28,伤害);// 伤害
+        LOG("冰冻开启\n");
+    }else{
+        mem.Write(mem.readLong(GetPersonPtr()+武器偏移)+冰冻开始, 0);
+        mem.Write(mem.readLong(GetPersonPtr()+武器偏移)+冰冻结束, 0);
+        LOG("冰冻关闭\n");
+    }
+    开关=!开关;
+}
+void DNFCommon::无视建筑(){
+    bool static 穿透=false;
+    int64_t 穿透地址 = 全局空白+4848;//+8范围  +12频率  +16触发时间  +20触发几率  +24冰冻几率  +28伤害
+    if (!穿透){
+        // 无视建筑
+        mem.Write(GetPersonPtr() + 建筑穿透, 0);
+        mem.Write(GetPersonPtr() + 地图穿透, 0);
+    }else{
+
+        // 还原
+        mem.Write(GetPersonPtr()+建筑穿透,40);
+        mem.Write(GetPersonPtr()+地图穿透,10);
+    }
+}
+
+

@@ -18,9 +18,7 @@ class VncViewer
     //Q_OBJECT
 public:
     VncViewer(){
-        std::string ip;
-        std::cout<<"请输入ip:"<<std::endl;
-        getline(std::cin,serverIp);
+        serverIp = "127.0.0.1";
         std::cout<<"请输入端口:"<<std::endl;
         std::cin>>serverPort;
         start();
@@ -37,6 +35,7 @@ public:
         KeyPressDown(key);
         Sleep(delay);
         KeyPressUp(key);
+        Sleep(20);
     }
 
     void MouseMove(int x,int y);

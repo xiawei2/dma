@@ -20,25 +20,16 @@ public:
     VncViewer vncViewer = VncViewer();
     double moveSpeed; // 移动速度
 
-    long long int getTime() {
-        // 获取当前时间点
-        auto now = std::chrono::system_clock::now();
 
-        // 转换为毫秒
-        auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
-        auto value_ms = now_ms.time_since_epoch();
-        long duration_ms = value_ms.count();
-        return duration_ms;
-    }
 
     // 上移动延迟
-    long long int delayUp = getTime();
+    long long int delayUp = GetTime();
     // 下移动延迟
-    long long int delayDown = getTime();
+    long long int delayDown = GetTime();
     // 左移动延迟
-    long long int delayLeft = getTime();
+    long long int delayLeft = GetTime();
     // 右移动延迟
-    long long int delayRight = getTime();
+    long long int delayRight = GetTime();
 
     /**
      * 移动

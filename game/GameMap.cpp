@@ -3,9 +3,9 @@
 //
 #include "address.h"
 #include "GameMap.h"
-#include "MapData.h"
 
-static long long int speed;
+
+
 
 MapDataType GameMap::GetMapDataType() {
     MapDataType data = MapDataType();
@@ -379,13 +379,16 @@ void GameMap::passMapByRun(int direction) {
     Coordinate nowRomm = GetCutRoom();
     while (nowRomm.x == cutRoom.x && nowRomm.y == cutRoom.y && IsOpenDoor()) {
         if (PickItem()) {
-            continue;
+            break;
+        }
+        if (GetMonsterData().size() > 0) {
+            break;
         }
 
 // 人物指针
         auto personPtr = GetPersonPtr();
         // 地图偏移
-        auto mapPy = mem.readLong(personPtr + 地图偏移);
+        auto mapPy = mem.readLong(personPtr + 地图偏移 + 8);// 创新需要+8 7度不需要
         if (mapPy == 0) {
             return;
         }
@@ -402,10 +405,10 @@ void GameMap::passMapByRun(int direction) {
         // 方向 1-右 0-左 2-上 3-下
         if (direction == 0) {
             x = startX + endX;
-            y = startY + endY / 2;
+            y = startY + endY / 2 + 50;
         } else if (direction == 1) {
             x = startX;
-            y = startY + endY / 2;
+            y = startY + endY / 2 + 50;
         } else if (direction == 2) {
             x = startX + endX / 2;
             y = startY + endY;
@@ -421,7 +424,8 @@ void GameMap::passMapByRun(int direction) {
         Sleep(100);
         if (!gameMove.delayMove) {
             auto role = GetRolePosition();
-            move(startX + endX / 2, startY, 1);
+            if (abs(role.x - startX + endX / 2) < 100)
+                move(startX + endX / 2, startY, 1);
         }
     }
     gameMove.stopMove();
@@ -473,17 +477,278 @@ bool GameMap::PickItem() {
     if (GetGameStat() != 3) {
         return false;
     }
-    vector<Coordinate> itemData = mapData.GetItemData();
+    while (GetPersonItem()) {
+        gameMove.vncViewer.KeyPress(XK_X, rnd(50, 120));
+    }
+    vector<Coordinate> itemData = GetItemData();
     if (itemData.size() > 0) {
-        auto itemPosition = mapData.GetNearestPosition(GetRolePosition(), itemData);
-        move(itemPosition.x, itemPosition.y, 2);
-        if (GetPersonItem()) {
-            gameMove.vncViewer.KeyPress(XK_X, rnd(50, 120));
+        for (int i = 0; i < itemData.size(); ++i) {
+            int index;
+            auto itemPosition = GetNearestPosition(GetRolePosition(), GetItemData(), &index);
+            int temp = index;
+            while (index == temp) {
+                itemPosition = GetNearestPosition(GetRolePosition(), GetItemData(), &temp);
+                if (itemPosition == NULL) {
+                    break;
+                }
+                move(itemPosition.x, itemPosition.y, 2);
+                if (GetPersonItem()) {
+                    gameMove.stopMove();
+                    Sleep(100);
+                    gameMove.vncViewer.KeyPress(XK_X, rnd(50, 120));
+                    break;
+                }
+            }
+
+            auto last = std::remove(itemData.begin(), itemData.end(), itemData[index]);
+            itemData.erase(last, itemData.end());
+
         }
-        PickItem();
+//        PickItem();
         return true;
     }
     return false;
+}
+
+MapTraversalType GameMap::GetMapData() {
+    MapTraversalType result = MapTraversalType();
+    result.rwAddr = GetPersonPtr();
+    result.mapData = mem.readLong(mem.readLong(result.rwAddr + 地图偏移 - 16) + 16);// 7度需要-8，创新不需要
+    result.start = mem.readLong(result.mapData + 地图开始2);
+    result.end = mem.readLong(result.mapData + 地图结束2);
+    result.objNum = (result.end - result.start) / 24;
+    return result;
+}
+
+int64_t GameMap::GetTraversalPtr(int64_t ptr, int64_t offset, int t) {
+    int64_t result = 0;
+    if (t == 1) {
+        auto one = mem.readLong(ptr + (offset - 1) * 8);
+        auto two = mem.readLong(one - 72);
+        result = mem.readLong(two + 16);
+    }
+    if (t == 2) {
+        auto one = mem.readLong(ptr + (offset - 1) * 24);
+        result = mem.readLong(one + 16) - 48;
+    }
+    return result;
+}
+
+vector<Coordinate> GameMap::GetMonsterData() {
+    MapTraversalType data = GetMapData();
+    vector<Coordinate> result = vector<Coordinate>();
+    for (data.objTmp = 1; data.objTmp < data.objNum; data.objTmp++) {
+        data.objPtr = GetTraversalPtr(data.start, data.objTmp, 2);
+        if (data.objPtr > 0) {
+            data.objTypeA = mem.readInt(data.objPtr + 类型偏移);
+            if (data.objTypeA == 529 || data.objTypeA == 545 || data.objTypeA == 273 || data.objTypeA == 61440 ||
+                data.objTypeA == 1057) {
+                // 阵营
+                data.objCamp = mem.readInt(data.objPtr + 阵营偏移);
+                // 物体代码
+                data.objCode = mem.readInt(data.objPtr + 代码偏移);
+                // 物体血量
+                data.objBlodd = mem.readInt(data.objPtr + 怪物血量);
+                if (data.objCamp > 0 && data.objPtr != data.rwAddr) {
+                    if (data.objBlodd > 0) {
+                        result.insert(result.end(), GetPosition(data.objPtr));
+                    }
+                }
+            }
+        }
+    }
+    return result;
+}
+
+void GameMap::AttactMonster() {
+    auto monsters = GetMonsterData();
+    if (monsters.size() > 0) {
+        auto rolePosition = GetRolePosition();
+        Coordinate nearestCoordinate = GetNearestPosition(rolePosition, monsters, nullptr);
+
+        if (abs(nearestCoordinate.x - rolePosition.x) < 70 && abs(nearestCoordinate.y - rolePosition.y) < 30) {
+            UnleashSkill();
+        } else {
+            move(nearestCoordinate.x, nearestCoordinate.y, 2);
+        }
+    }
+}
+
+void GameMap::UnleashSkill() {
+    gameMove.stopMove();
+    //A-H为0-5 Q-Y为7-12
+    if (IsBossRoom()) {
+        // Boss 房间放ALT
+        if (IsSkillFlush(6) && GetTime() > SkillMap[6]) {
+            gameMove.vncViewer.KeyPress(XK_Alt_L, rnd(50, 120));
+            Sleep(100);
+            auto skillCD = GetSkillCD(6);
+            // -1代表未成功释放或技能栏没有技能
+            if (skillCD == -1) {
+                gameMove.vncViewer.KeyPress(XK_X, rnd(20, 120));
+            } else {
+                SkillMap[6] = GetTime() + skillCD;
+                Sleep(2000);
+                return;
+            }
+        }
+    }
+    auto room = GetCutRoom();
+    if (std::find(path.begin(), path.end(),room)==path.end()){
+        // 释放大技能
+        auto canSkills = GetCanSkills();
+        if (!canSkills.empty()){
+            for (int i = 0; i < sizeof(SkillBig)/sizeof(SkillBig[0]); ++i) {
+
+                if (std::find(canSkills.begin(), canSkills.end(),SkillBig[i])!=canSkills.end()){
+                    int skill = canSkills[i];
+                    // 获取技能冷却时间
+                    gameMove.vncViewer.KeyPress(SkillList[skill], rnd(20, 120));
+
+                    Sleep(100);
+                    auto skillCD = GetSkillCD(skill);
+                    // -1代表未成功释放或技能栏没有技能
+                    if (skillCD == -1) {
+                        gameMove.vncViewer.KeyPress(XK_X, rnd(20, 120));
+                    }else{
+                        SkillMap[skill] = GetTime() + skillCD;
+                        path.push_back(GetCutRoom());
+                        return;
+                    }
+                }
+
+            }
+        }
+
+    }
+    auto canSkills = GetCanSkills();
+    if (canSkills.size() > 0) {
+        int skill = canSkills[rnd(0, canSkills.size() - 1)];
+        // 获取技能冷却时间
+        gameMove.vncViewer.KeyPress(SkillList[skill], rnd(20, 120));
+        Sleep(100);
+        auto skillCD = GetSkillCD(skill);
+        // -1代表未成功释放或技能栏没有技能
+        if (skillCD == -1) {
+            gameMove.vncViewer.KeyPress(XK_X, rnd(20, 120));
+        } else {
+            SkillMap[skill] = GetTime() + skillCD;
+        }
+
+
+        Sleep(50);
+    }
+}
+
+std::vector<int> GameMap::GetCanSkills() {
+    std::vector<int> result;
+    for (int i = 0; i < 6; ++i) {
+        if (GetTime() > SkillMap[i]) {
+            result.push_back(i);
+        }
+    }
+    for (int i = 7; i < 13; ++i) {
+        if (GetTime() > SkillMap[i]) {
+            result.push_back(i);
+        }
+    }
+    return result;
+}
+
+
+/**
+ * 通关初始化技能时间
+ * @return
+ */
+bool GameMap::IsPass() {
+    auto roomData = mem.readLong(mem.readLong(mem.readLong(房间编号) + 时间基址) + 门型偏移);
+    auto dataVal = mem.readInt(roomData + 篝火判断);
+    if (dataVal == 0 || dataVal == 2) {
+        InitSkillMap();
+        return true;
+    }
+    return false;
+}
+
+
+vector<Coordinate> GameMap::GetItemData() {
+    std:
+    wstring filterItems = L"橙子-哈密瓜-草莓-碎布片-生锈的铁片-破旧的皮革-最下级砥石-最下级硬化剂-风化的碎骨-入门HP药剂-入门MP药剂-普通HP药剂-普通MP药剂-肉干-命运硬币-轰爆弹-爆弹-燃烧瓶-精灵气息-遗留的水晶碎片-远古王国的遗物-古城遗物-蘑菇袍子-浮游石原石-天界珍珠-越桔-魔力之花-野草莓-朗姆酒-裂空镖-甜瓜-飞盘 2-神圣葡萄酒-撒勒的印章-克尔顿的印章-肉块-天空树果实-石头-圣杯-天才的地图碎片-柴火-远古骑士的盔甲-无尽的永恒-使徒的气息-坚硬的龟壳-遗留的水晶碎片-突变苎麻花叶-苎麻花叶-副船长的戒指-步枪零件-黑色龙舌兰酒-烤硬的黑面包-虚空魔石碎片-格林赛罗斯的果核-跃翔药剂-突变草莓-暗黑城特产干酪-卡勒特勋章-迷幻晶石-高级钻石硬币-钻石硬币-混沌魔石碎片-碳结晶体-数据芯片-神秘的胶囊碎片-阳光硬币-魔刹石-命运硬币-砂砾-军用回旋镖-飞镖-砂砾-精灵香精-鸡腿-黑曜石-血滴石-紫玛瑙-金刚石-海蓝宝石-光辉魔石碎片-光辉魔石-次元碎片-卡勒特指令书-GBL教古书-凯丽的杂物-烤蘑菇-蘑菇酒-远古生命药剂-祝福之手-新手HP药剂-新手MP药剂-入门HP药剂-入门MP药剂-达人HP药剂-达人MP药剂-夜光石";
+    vector<wstring> items;
+    // 使用-分割文本
+    split(filterItems, items, L"-");
+    MapTraversalType data = GetMapData();
+    vector<Coordinate> result = vector<Coordinate>();
+    for (data.objTmp = 1; data.objTmp <= data.objNum; data.objTmp++) {
+        data.objPtr = GetTraversalPtr(data.start, data.objTmp, 2);
+        data.objTypeA = mem.readInt(data.objPtr + 类型偏移);
+        data.objTypeB = mem.readInt(data.objPtr + 类型偏移 + 4);
+        data.objCamp = mem.readInt(data.objPtr + 阵营偏移);
+        if ((data.objTypeA == 289 || data.objTypeB == 289) && data.objCamp == 200) {
+            auto itemNamePtr = mem.readLong(mem.readLong(data.objPtr + 地面物品) + 物品名称);
+            auto itemNameBytes = mem.readBytes(itemNamePtr, 100);
+            // 物品名称
+            Coordinate position = GetPosition(data.objPtr);
+
+            auto itemName = UnicodeToAnsi(itemNameBytes);
+            // 物品名称在过滤列表中
+            if (find(items.begin(), items.end(), itemName) != items.end()) {
+                continue;
+            }
+//            printf("物体名称: 【%s】，类型：【%d】，坐标：【%d,%d】\n", WideStringToString(itemName).c_str(), data.objTypeA,
+//                   position.x,
+//                   position.y);
+            // 物体代码
+            data.objCode = mem.readInt(data.objPtr + 代码偏移);
+            // 物体血量
+            data.objBlodd = mem.readInt(data.objPtr + 怪物血量);
+            if (data.objCamp > 0 && data.objPtr != data.rwAddr) {
+
+                result.insert(result.end(), position);
+            }
+        }
+    }
+    return result;
+}
+
+
+Coordinate GameMap::GetNearestPosition(Coordinate position, vector<Coordinate> positions, int *index) {
+    int minIndex = 0;
+    if (positions.size() == 0) {
+        return NULL;
+    }
+    int minRange = ComputedRange(position, positions[0]);;
+    for (int i = 0; i < positions.size(); i++) {
+        int range = ComputedRange(position, positions[i]);
+        if (range < minRange) {
+            minRange = range;
+            minIndex = i;
+        }
+    }
+    if (index != nullptr) {
+        *index = minIndex;
+    }
+    return positions[minIndex];
+}
+
+int GameMap::ComputedRange(Coordinate position, Coordinate position1) {
+    // 计算x坐标的差值
+    int x = position.x - position1.x;
+    // 计算y坐标的差值
+    int y = position.y - position1.y;
+    // 计算并返回两点之间的距离
+    return (int) std::sqrt(x * x + y * y);
+}
+
+void GameMap::InitSkillMap() {
+    for (int i = 1; i <= 13; ++i) {
+        SkillMap[i] = 0LL; // 使用循环初始化从1到13的键，值设为0
+    }
+}
+
+int GameMap::取翻牌状态() {
+
+    return mem.readInt(mem.readInt(回城参数)+翻牌完成);
 }
 
 

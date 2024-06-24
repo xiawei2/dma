@@ -87,14 +87,14 @@
 //        std::cout << "Codecave found at: " << std::hex << codecaves[0] << std::endl;
 //    std::cout << "Hello World!\n";
 //    //pause();
-////    Sleep(10000);
-////    uint64_t codecave = codecaves[0];
-////    unsigned char shellcode[] = {72, 131, 236, 100, 0, 0, 0, 255, 21, 2, 0, 0, 0, 235, 8, 248, 224, 74, 75, 1, 0, 0, 0, 72, 163, 248, 224, 74, 75, 1, 0, 0, 0, 72, 131, 196, 100};
-////    if (!mem.Write(codecave, shellcode, sizeof(shellcode)))
-////    {
-////        printf("Failed to write shellcode\n");
-////        return 1;
-////    }
+//    Sleep(10000);
+//    uint64_t codecave = codecaves[0];
+//    unsigned char shellcode[] = {72, 131, 236, 100, 0, 0, 0, 255, 21, 2, 0, 0, 0, 235, 8, 248, 224, 74, 75, 1, 0, 0, 0, 72, 163, 248, 224, 74, 75, 1, 0, 0, 0, 72, 131, 196, 100};
+//    if (!mem.Write(codecave, shellcode, sizeof(shellcode)))
+//    {
+//        printf("Failed to write shellcode\n");
+//        return 1;
+//    }
 ////    long prt = mem.Read<long>(0x13FDC0000);
 ////    std::cout << "Value: " << prt << std::endl;
 ////    uint64_t call=   0x13FDC0000ULL;

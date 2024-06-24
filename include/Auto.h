@@ -4,13 +4,18 @@
 
 #ifndef DMA_AUTO_H
 #define DMA_AUTO_H
-#include "allHeader.h"
-#include "Coordinate.h"
-#include "address.h"
-#include "MapData.h"
+#include "GameMove.h"
 #include "GameMap.h"
-class Auto {
-
+#include "MapData.h"
+class GameAuto {
+public:
+    GameMap gameMap;
+    void Fight();
+    void Finish();
+    void Start();
+private:
+    int times = 0;// 通关次数
+    bool stat = true;// 运行状态
 };
 //void passMap();
 

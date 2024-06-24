@@ -789,6 +789,21 @@ bool Memory::Write(uintptr_t address, void* buffer, size_t size, int pid) const
 	}
 	return true;
 }
+bool Memory::WriteBytes(uintptr_t address, std::vector<BYTE> buffer) const{
+	int length;
+	length = (int)buffer.size();
+	byte* val = new byte[length]();
+	for (int i = 0; i < length; i++)
+	{
+		val[i] = buffer[i];
+	}
+	if (!VMMDLL_MemWrite(this->vHandle, current_process.PID, address, val, buffer.size()))
+	{
+		LOG("[!] Failed to write Memory at 0x%p\n", address);
+		return false;
+	}
+	return true;
+}
 
 bool Memory::Read(uintptr_t address, void* buffer, size_t size) const
 {
@@ -896,6 +911,16 @@ void Memory::ExecuteWriteScatter(VMMDLL_SCATTER_HANDLE handle, int pid)
 		LOG("[-] Failed to clear Scatter\n");
 	}
 }
+
+int64_t Memory::FindCodecave(int size) {
+	std::vector<uint64_t> codecaves = mem.GetShellcode().find_all_codecave(1024, "DNF.exe");
+	if (codecaves.size()== 0)
+		std::cout << "Failed to find codecave" << std::endl;
+	else
+		std::cout << "Codecave found at: " << std::hex << codecaves[1] << std::endl;
+	return  codecaves[1];
+}
+
 VOID ShowKeyPress()
 {
     printf("PRESS ANY KEY TO CONTINUE ...\n");

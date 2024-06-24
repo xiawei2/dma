@@ -13,7 +13,8 @@ file(GLOB_RECURSE SRC_DIR_LIST "game/*.cpp" "Memory/*.cpp" "")	#遍历获取sour
 add_executable(
         ${PROJECT_NAME}
         ${SRC_DIR_LIST}
-        main.cpp#将DIR_LIB_SRCS中文件列表以静态库的方式加入工程
+        main.cpp
+        include/fastCall.h#将DIR_LIB_SRCS中文件列表以静态库的方式加入工程
 )
 
 message(STATUS "SRC_DIR_LIST = ${SRC_DIR_LIST}")			#打印SRC_DIR_LIST中列表信息

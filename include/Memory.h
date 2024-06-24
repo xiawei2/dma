@@ -356,8 +356,46 @@ public:
         }
         return result;
     }
+	// 无申请内存空间功能，寻找代码空洞
+
+	int64_t FindCodecave(int size);
 	/*the FPGA handle*/
 	VMM_HANDLE vHandle;
+
+	bool WriteBytes(uintptr_t address, std::vector<BYTE> buffer) const;
+
+	template <typename T>
+	bool WriteArray(uintptr_t address, std::vector<T> buffer) const{
+		int length;
+		length = (int)buffer.size();
+		byte* val = new byte[length]();
+		for (int i = 0; i < length; i++)
+		{
+			val[i] = buffer[i];
+		}
+		if (!VMMDLL_MemWrite(this->vHandle, current_process.PID, address, val, buffer.size()))
+		{
+			LOG("[!] Failed to write Memory at 0x%p\n", address);
+			return false;
+		}
+		return true;
+	}
+	template <typename T>
+	bool WriteArray(uintptr_t address, T buffer) const{
+		int length;
+		length = (int)buffer.size();
+		byte* val = new byte[length]();
+		for (int i = 0; i < length; i++)
+		{
+			val[i] = buffer[i];
+		}
+		if (!VMMDLL_MemWrite(this->vHandle, current_process.PID, address, val, buffer.size()))
+		{
+			LOG("[!] Failed to write Memory at 0x%p\n", address);
+			return false;
+		}
+		return true;
+	}
 };
 
 inline Memory mem{

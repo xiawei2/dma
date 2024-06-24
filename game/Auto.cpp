@@ -5,4 +5,97 @@
 #include "Auto.h"
 
 
+void GameAuto::Fight() {
+    if (gameMap.GetGameStat() != 3) {
+        return;
+    }
+    gameMap.path.clear();
+    while (!gameMap.IsPass()&&stat) {
+        if (gameMap.IsOpenDoor()) {
+            gameMap.passMap();
+        } else {
+            gameMap.AttactMonster();
+        }
+        Sleep(100);
+    }
+}
 
+void GameAuto::Finish() {
+    if (gameMap.GetGameStat() != 3) {
+        return;
+    }
+
+    if (gameMap.IsPass()){
+        times++;
+        printf("已通关:%d次！\n",times);
+    }
+    gameMove.vncViewer.KeyPress(XK_V, rnd(40, 120));
+    while (true&&stat){
+        if (gameMap.取翻牌状态()==4){
+            Sleep(1000);
+            gameMove.vncViewer.KeyPress(XK_Escape, rnd(40, 120));
+
+        }
+        if(gameMap.取翻牌状态()==0){
+            break;
+        }
+
+    }
+    if (gameMap.GetBagWeight()>80){
+        printf("出售物品\n");
+        Sleep(500);
+        gameMove.vncViewer.KeyPress(XK_A, rnd(40, 120));
+        Sleep(500);
+        gameMove.vncViewer.KeyPress(XK_space, rnd(40, 120));
+        Sleep(500);
+        gameMove.vncViewer.KeyPress(XK_Left, rnd(40, 120));
+        Sleep(500);
+        gameMove.vncViewer.KeyPress(XK_space, rnd(40, 120));
+    }
+    if (gameMap.GetPL() > 0) {
+        while (gameMap.IsPass()&&stat) {
+            gameMap.PickItem();
+            if (gameMap.IsJiaBaiLi()){
+                gameMove.vncViewer.KeyPress(XK_Escape, rnd(40, 120));
+            }
+            gameMove.vncViewer.KeyPress(XK_F10, rnd(40, 120));
+            Sleep(1000);
+        }
+        Sleep(1000);
+        gameMove.vncViewer.KeyPress(XK_Control_L, rnd(40, 120));
+    }
+}
+
+void GameAuto::Start() {
+
+    mem.GetKeyboard()->UpdateKeys();
+    std::thread *t = new std::thread([this]() {
+        while (true) {
+            // end
+            if(mem.GetKeyboard()->IsKeyDown(35)){
+                stat = false;
+            }
+            // home
+            if (mem.GetKeyboard()->IsKeyDown(36)){
+                gameMap.speed=0;
+                stat = true;
+            }
+            if (mem.GetKeyboard()->IsKeyDown(112)){ //F1
+                gameMap.武器冰冻(99999999);
+            }
+            if (mem.GetKeyboard()->IsKeyDown(113)){ //F2
+                gameMap.无视建筑();
+            }
+            Sleep(500);
+        };
+    });
+    t->detach();
+    while (true){
+        if (stat){
+            Fight();
+            Finish();
+        }
+        Sleep(500);
+    }
+
+}

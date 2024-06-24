@@ -6,8 +6,8 @@
 #define DMA_ALLHEADER_H
 #pragma once
 #include <windows.h>
-#include<stdio.h>
-#include<stdlib.h>
+#include<cstdio>
+#include<cstdlib>
 #include<wchar.h>
 #include<locale.h>
 #include <tchar.h>
@@ -38,8 +38,12 @@
 #include <fstream>
 #include <ctime>
 #include "address.h"
+
 using namespace std;
+
 #endif //DMA_ALLHEADER_H
+#define ByteArr std::vector<BYTE>
+
 class DNFCommon{
 public:
     Coordinate GetBossRoom();
@@ -55,6 +59,8 @@ public:
     int GetGameStat();
 
     int GetPL();
+    int GetShop();
+    bool IsJiaBaiLi();
 /**
   * 是否城镇
   *
@@ -101,6 +107,17 @@ public:
 
     static Coordinate GetPosition(long long int ptr);
     bool GetPersonItem();
+    //判断技能是否冷却完毕   A-H为0-5 Q-Y为7-12  6-alt 13-ctrl
+    bool IsSkillFlush(int index);
+
+    int GetFlushTime(int64_t skillPtr);
+
+    int GetSkillCD(int index);
+
+
+    void 武器冰冻(int64_t 伤害);
+
+    void 无视建筑();
 };
 
 

@@ -15,15 +15,15 @@ void GameMove::move(int roleX, int roleY, int moveX, int moveY, int moveType) {
     xDir = (roleX - moveX) > 0 ? XK_Left : XK_Right;
     yDir = (roleY - moveY) > 0 ? XK_Up : XK_Down;
     // 获取移动时间
-    xDelay = abs(roleX - moveX) * moveSpeed;
-    yDelay = abs(roleY - moveY) * moveSpeed;
+    xDelay = abs(roleX - moveX) * moveSpeed<100?100:abs(roleX - moveX) * moveSpeed;
+    yDelay = abs(roleY - moveY) * moveSpeed<100?100:abs(roleY - moveY) * moveSpeed;
     // x移动延迟大于200，则需要跑动
     if (xDelay > 200) {
         needRun = true;
         // 跑动时，x方向移动时间减半
         xDelay = xDelay / 2;
     }
-    auto now = getTime();
+    auto now = GetTime();
     if (xDir == XK_Left) {
         // 判断内存中的左按键延迟是否大于当前系统时间，如果大于则加上当前传入的延迟
         if (delayLeft > now) {
@@ -90,7 +90,7 @@ void GameMove::move(int roleX, int roleY, int moveX, int moveY, int moveType) {
             bool up = false;
             bool down = false;
             while (delayMove) {
-                auto nowTime = getTime();
+                auto nowTime = GetTime();
                 // 当按键延迟小于当前系统时间,弹起该按键，并置该按键为false状态，当全部按键为false时退出循环，进程结束
                 if (delayLeft < nowTime) {
 

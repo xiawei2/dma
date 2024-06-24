@@ -16,6 +16,12 @@ public:
     int x;
     int y;
     int z;
+    // 重载==运算符
+    bool operator==(const Coordinate& other) const {
+        // 根据Coordinate的定义，比较成员变量判断两个Coordinate是否相等
+        // 例如，如果Coordinate有两个成员x和y，比较方式可能是：
+        return x == other.x && y == other.y && z == other.z;
+    }
 };
 class MapTraversalType {
 public:

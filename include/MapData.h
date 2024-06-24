@@ -50,7 +50,9 @@ public:
 
     Coordinate GetRolePosition();
 
-    void passMapByRun(int direction);
+    void AttactMonster();
+
+    void UnleashSkill();
 };
 
 inline MapData mapData;

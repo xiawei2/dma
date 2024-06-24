@@ -6,7 +6,7 @@
 #define DMA_GAMEMAP_H
 #include "allHeader.h"
 #include "Coordinate.h"
-
+#include "map"
 #include "GameMove.h"
 
 
@@ -14,6 +14,12 @@
 #endif //DMA_GAMEMAP_H
 class GameMap: public DNFCommon{
 public:
+    long long int speed;
+    int SkillList[14] = {XK_A, XK_S, XK_D, XK_F, XK_G, XK_H, XK_Alt_L,XK_Q, XK_W, XK_E, XK_R, XK_T, XK_Y,XK_Control_L};
+    std::map<int, long long int > SkillMap;
+    std::vector<Coordinate> path;// 当前房间是否使用过大技能
+    int SkillBig[5] = {8, 9, 10, 11, 12};
+    void InitSkillMap();
     MapDataType GetMapDataType();
 
     int GetRoute(std::vector<int> mapChannel, int width, int height, Coordinate start, Coordinate end,
@@ -89,8 +95,58 @@ public:
     void move(int x1, int y1, int type);
 
     bool PickItem();
+    /**
+ * 取遍历指针
+ *
+ * @param ptr    long 指针地址
+ * @param offset int 漂移计次
+ * @param t      int  1 物品 2 地图
+ * @return long
+ */
+    int64_t GetTraversalPtr(long ptr, long offset, int t);
+
+/**
+     * 地图遍历数据
+     *
+     * @return MapTraversalType
+     */
+    MapTraversalType GetMapData();
+
+/**
+ * 怪物遍历数据
+ * @return
+ */
+    vector<Coordinate> GetMonsterData();
+
+/**
+ * 物品遍历数据
+ * @return
+ */
+    vector<Coordinate> GetItemData();
+
+//    Coordinate GetPosition(long long int ptr);
+
+    Coordinate GetNearestPosition(Coordinate position, vector<Coordinate> positions, int *pInt);
+
+    int64_t GetTraversalPtr(int64_t ptr, int64_t offset, int t);
+
+    int ComputedRange(Coordinate position, Coordinate position1);
+
+//    Coordinate GetRolePosition();
+
+    void AttactMonster();
+
+    void UnleashSkill();
 
 
+    vector<int> GetCanSkills();
+
+    bool IsPass();
+    // 0 未翻牌
+    //  1 翻牌完成在图内
+    //  4 翻牌中
+
+    int 取翻牌状态();
 };
 inline GameMap gameMap;
 
