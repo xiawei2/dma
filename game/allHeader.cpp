@@ -22,7 +22,6 @@ Coordinate DNFCommon::GetCutRoom() {
 }
 int64_t DNFCommon::GetPersonPtr() {
     auto ptr = mem.readLong(新人物基址)-48;
-
     if (ptr>0&&mem.readLong(人物基址B)==ptr){
         return ptr;
     }
@@ -71,7 +70,7 @@ int DNFCommon::GetSkillCD(int index) {
     if (lastKeyTime==0){
         return -1;
     }
-    return (lastKeyTime  - edi) / xmm1;
+    return time;
 }
 
 bool DNFCommon::IsOpenDoor() {
@@ -134,7 +133,7 @@ INT DNFCommon::GetBagWeight(){
     auto personPtr = GetPersonPtr();
     auto data = mem.readLong(personPtr + 物品栏);
     int cutWeight = decode(data  +0x58);
-    int maxWeight = decode(data + 最大负重);
+    int maxWeight = decode(personPtr + 最大负重);
     float result = (float)cutWeight / (float)maxWeight*100;
     return (int)result;
 }
@@ -166,14 +165,15 @@ bool DNFCommon::GetPersonItem() {
 }
 
 int DNFCommon::GetFlushTime(int64_t skillPtr) {
-    auto lastKeyTime = mem.readInt(skillPtr+判断冷却_1);// 最后按键时间
-    auto eax = mem.readInt(skillPtr+判断冷却_2);
-    auto edi = mem.readInt(skillPtr+判断冷却_2 +4);
+    auto 参数2 = 冷却参数_2-8;
+    long long int lastKeyTime = mem.readInt(skillPtr+判断冷却_1);// 最后按键时间
+    long long int eax = mem.readInt(skillPtr+判断冷却_2);
+    long long int edi = mem.readInt(skillPtr+判断冷却_2 +4);
     auto xmm1 = mem.readFloat(skillPtr+判断冷却_2 +8);
-    auto ret = mem.readInt(冷却参数_1+mem.readInt(冷却参数_2+8)*4)+mem.readInt(冷却参数_2+16);
-    ret = (ret -eax)*(int)xmm1 + edi;
+    long long int ret = mem.readInt(冷却参数_1+mem.readInt(参数2+8)*4)+mem.readInt(参数2+16);
+    ret = (ret -eax)*xmm1 + edi;
 //   auto ret = mem.readInt(冷却参数_1);
-    return ret - lastKeyTime-500>0?0:ret - lastKeyTime;
+    return ret - lastKeyTime>0?0:ret - lastKeyTime;
 }
 
 int DNFCommon::GetShop() {

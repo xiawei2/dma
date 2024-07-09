@@ -6,9 +6,11 @@
 
 
 void GameAuto::Fight() {
-    if (gameMap.GetGameStat() != 3) {
+    if (gameMap.GetGameStat() != 3&&!firstIntoMap&&!gameMap.IsPass()) {
         return;
     }
+    // 首次进图操作
+    firstIntoMap = false;
     gameMap.path.clear();
     while (!gameMap.IsPass()&&stat) {
         if (gameMap.IsOpenDoor()) {
@@ -25,23 +27,23 @@ void GameAuto::Finish() {
         return;
     }
 
-    if (gameMap.IsPass()){
+    if (stat&&gameMap.IsPass()&&!firstIntoMap){
         times++;
         printf("已通关:%d次！\n",times);
     }
     gameMove.vncViewer.KeyPress(XK_V, rnd(40, 120));
     while (true&&stat){
-        if (gameMap.取翻牌状态()==4){
+        if (gameMap.取翻牌状态()==4||gameMap.取翻牌状态()==0){
             Sleep(1000);
-            gameMove.vncViewer.KeyPress(XK_Escape, rnd(40, 120));
+            gameMove.vncViewer.KeyPress(XK_1, rnd(40, 120));
 
         }
-        if(gameMap.取翻牌状态()==0){
+        if(gameMap.取翻牌状态()==1){
             break;
         }
 
     }
-    if (gameMap.GetBagWeight()>80){
+    if (gameMap.GetBagWeight()>50){
         printf("出售物品\n");
         Sleep(500);
         gameMove.vncViewer.KeyPress(XK_A, rnd(40, 120));
@@ -63,6 +65,9 @@ void GameAuto::Finish() {
         }
         Sleep(1000);
         gameMove.vncViewer.KeyPress(XK_Control_L, rnd(40, 120));
+
+    }else{
+        stat = false;
     }
 }
 
@@ -81,7 +86,7 @@ void GameAuto::Start() {
                 stat = true;
             }
             if (mem.GetKeyboard()->IsKeyDown(112)){ //F1
-                gameMap.武器冰冻(99999999);
+                gameMap.武器冰冻(999999999);
             }
             if (mem.GetKeyboard()->IsKeyDown(113)){ //F2
                 gameMap.无视建筑();

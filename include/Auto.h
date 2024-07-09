@@ -13,6 +13,7 @@ public:
     void Fight();
     void Finish();
     void Start();
+    bool firstIntoMap= true;
 private:
     int times = 0;// 通关次数
     bool stat = true;// 运行状态

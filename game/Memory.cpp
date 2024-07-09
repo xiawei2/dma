@@ -272,10 +272,10 @@ bool Memory::Init(std::string process_name, bool memMap, bool debug)
 		return false;
 	}
 	current_process.process_name = process_name;
-	if (!mem.FixCr3())
-		std::cout << "CR3 修复失败" << std::endl;
-	else
-		std::cout << "CR3 已修复" << std::endl;
+//	if (!mem.FixCr3())
+//		std::cout << "CR3 修复失败" << std::endl;
+//	else
+//		std::cout << "CR3 已修复" << std::endl;
 
 	current_process.base_address = GetBaseDaddy(process_name);
 	if (!current_process.base_address)
@@ -402,7 +402,7 @@ size_t Memory::GetBaseSize(std::string module_name)
 	auto bResult = VMMDLL_Map_GetModuleFromNameW(this->vHandle, current_process.PID, const_cast<LPWSTR>(str.c_str()), &module_info, VMMDLL_MODULE_FLAG_NORMAL);
 	if (bResult)
 	{
-		LOG("[+] Found Base Size for %s at 0x%p\n", module_name.c_str(), module_info->cbImageSize);
+		LOG("[+] 找到基址 %s ： 0x%p\n", module_name.c_str(), module_info->cbImageSize);
 		return module_info->cbImageSize;
 	}
 	return 0;
@@ -810,7 +810,7 @@ bool Memory::Read(uintptr_t address, void* buffer, size_t size) const
 	DWORD read_size = 0;
 	if (!VMMDLL_MemReadEx(this->vHandle, current_process.PID, address, static_cast<PBYTE>(buffer), size, &read_size, VMMDLL_FLAG_NOCACHE))
 	{
-		LOG("[!] Failed to read Memory at 0x%p\n", address);
+		LOG("[!] 读取内存失败： 0x%p\n", address);
 		return false;
 	}
 

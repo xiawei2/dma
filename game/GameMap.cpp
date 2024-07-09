@@ -5,8 +5,6 @@
 #include "GameMap.h"
 
 
-
-
 MapDataType GameMap::GetMapDataType() {
     MapDataType data = MapDataType();
     auto roomData = mem.readLong(mem.readLong(mem.readLong(房间编号) + 时间基址) + 门型偏移);
@@ -405,10 +403,10 @@ void GameMap::passMapByRun(int direction) {
         // 方向 1-右 0-左 2-上 3-下
         if (direction == 0) {
             x = startX + endX;
-            y = startY + endY / 2 + 50;
+            y = startY + endY / 2 ;
         } else if (direction == 1) {
             x = startX;
-            y = startY + endY / 2 + 50;
+            y = startY + endY / 2 ;
         } else if (direction == 2) {
             x = startX + endX / 2;
             y = startY + endY;
@@ -419,12 +417,11 @@ void GameMap::passMapByRun(int direction) {
         gameMove.moveSpeed = GetMoveSpeed();
         move(x, y, 2);
         Sleep(50);
-        move(startX + endX / 2, startY, 1);
         nowRomm = GetCutRoom();
         Sleep(100);
         if (!gameMove.delayMove) {
             auto role = GetRolePosition();
-            if (abs(role.x - startX + endX / 2) < 100)
+            if (abs(role.x -( startX + endX) / 2) < 100)
                 move(startX + endX / 2, startY, 1);
         }
     }
@@ -495,8 +492,10 @@ bool GameMap::PickItem() {
                 if (GetPersonItem()) {
                     gameMove.stopMove();
                     Sleep(100);
-                    gameMove.vncViewer.KeyPress(XK_X, rnd(50, 120));
-                    break;
+                    if (GetPersonItem()){
+                        gameMove.vncViewer.KeyPress(XK_X, rnd(20, 120));
+                        break;
+                    }
                 }
             }
 
@@ -579,29 +578,31 @@ void GameMap::UnleashSkill() {
     //A-H为0-5 Q-Y为7-12
     if (IsBossRoom()) {
         // Boss 房间放ALT
-        if (IsSkillFlush(6) && GetTime() > SkillMap[6]) {
+        if (IsSkillFlush(6)) {
             gameMove.vncViewer.KeyPress(XK_Alt_L, rnd(50, 120));
             Sleep(100);
             auto skillCD = GetSkillCD(6);
+            Sleep(2000);
+            return;
             // -1代表未成功释放或技能栏没有技能
-            if (skillCD == -1) {
-                gameMove.vncViewer.KeyPress(XK_X, rnd(20, 120));
-            } else {
-                SkillMap[6] = GetTime() + skillCD;
-                Sleep(2000);
-                return;
-            }
+//            if (skillCD == -1) {
+//                gameMove.vncViewer.KeyPress(XK_X, rnd(20, 120));
+//            } else {
+//                SkillMap[6] = GetTime() + skillCD;
+//                Sleep(2000);
+//                return;
+//            }
         }
     }
     auto room = GetCutRoom();
-    if (std::find(path.begin(), path.end(),room)==path.end()){
+    if (std::find(path.begin(), path.end(), room) == path.end()) {
         // 释放大技能
         auto canSkills = GetCanSkills();
-        if (!canSkills.empty()){
-            for (int i = 0; i < sizeof(SkillBig)/sizeof(SkillBig[0]); ++i) {
+        if (!canSkills.empty()) {
+            for (int i = 0; i < sizeof(SkillBig) / sizeof(SkillBig[0]); ++i) {
 
-                if (std::find(canSkills.begin(), canSkills.end(),SkillBig[i])!=canSkills.end()){
-                    int skill = canSkills[i];
+                if (std::find(canSkills.begin(), canSkills.end(), SkillBig[i]) != canSkills.end()) {
+                    int skill = SkillBig[i];
                     // 获取技能冷却时间
                     gameMove.vncViewer.KeyPress(SkillList[skill], rnd(20, 120));
 
@@ -610,7 +611,7 @@ void GameMap::UnleashSkill() {
                     // -1代表未成功释放或技能栏没有技能
                     if (skillCD == -1) {
                         gameMove.vncViewer.KeyPress(XK_X, rnd(20, 120));
-                    }else{
+                    } else {
                         SkillMap[skill] = GetTime() + skillCD;
                         path.push_back(GetCutRoom());
                         return;
@@ -626,14 +627,14 @@ void GameMap::UnleashSkill() {
         int skill = canSkills[rnd(0, canSkills.size() - 1)];
         // 获取技能冷却时间
         gameMove.vncViewer.KeyPress(SkillList[skill], rnd(20, 120));
-        Sleep(100);
-        auto skillCD = GetSkillCD(skill);
-        // -1代表未成功释放或技能栏没有技能
-        if (skillCD == -1) {
-            gameMove.vncViewer.KeyPress(XK_X, rnd(20, 120));
-        } else {
-            SkillMap[skill] = GetTime() + skillCD;
-        }
+//        Sleep(100);
+//        auto skillCD = GetSkillCD(skill);
+//        // -1代表未成功释放或技能栏没有技能
+//        if (skillCD == -1) {
+//            gameMove.vncViewer.KeyPress(XK_X, rnd(20, 120));
+//        } else {
+//            SkillMap[skill] = GetTime() + skillCD;
+//        }
 
 
         Sleep(50);
@@ -643,12 +644,12 @@ void GameMap::UnleashSkill() {
 std::vector<int> GameMap::GetCanSkills() {
     std::vector<int> result;
     for (int i = 0; i < 6; ++i) {
-        if (GetTime() > SkillMap[i]) {
+        if (IsSkillFlush(i)) {
             result.push_back(i);
         }
     }
     for (int i = 7; i < 13; ++i) {
-        if (GetTime() > SkillMap[i]) {
+        if (IsSkillFlush(i)) {
             result.push_back(i);
         }
     }
@@ -745,10 +746,12 @@ void GameMap::InitSkillMap() {
         SkillMap[i] = 0LL; // 使用循环初始化从1到13的键，值设为0
     }
 }
-
+//0 未翻牌
+//1 翻牌完成在图内
+//4 翻牌中
 int GameMap::取翻牌状态() {
 
-    return mem.readInt(mem.readInt(回城参数)+翻牌完成);
+    return mem.readInt(mem.readLong(回城参数) + 翻牌完成);
 }
 
 

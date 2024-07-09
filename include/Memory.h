@@ -400,6 +400,6 @@ public:
 
 inline Memory mem{
     "DNF.exe",
-    true,
+	true,
     false
 };
