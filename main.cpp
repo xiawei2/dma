@@ -43,8 +43,19 @@ std::wstring stringToWString(const std::string &str) {
 
 int main() {
 //    InitCode();
-    GameAuto gameAuto;
-gameAuto.Start();
+    auto vnc =gameMove.vncViewer;
+    while (true) {
+
+        auto bmpdata = vnc.bmpData;
+        FILE *f = fopen("framebuffer.bmp", "wb");
+        for (int i = 0; i < vnc.size; ++i) {
+            fputc(bmpdata[i],f);
+        }
+        fputc(0,f);
+        fclose(f);
+        getchar();
+//        Sleep(1000);
+    }
 //    while (true) {
 //        if (gameMap.IsSkillFlush(0)){
 //            printf("技能冷却完成\n");

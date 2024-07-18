@@ -8,10 +8,20 @@
 #include <iostream>
 #include <thread>
 #include<string>
+#include <shared_mutex>
 #include "rfbclient.h"
 class qt5vncclient {
 
 };
+
+class{
+public:
+    std::unique_ptr<unsigned char[]> bmpData;
+    int size;
+} bmpData;
+
+
+
 class VncViewer
 {
     //if you want to make use of signals/slots, uncomment the line bellow:
@@ -23,8 +33,11 @@ public:
         std::cin>>serverPort;
         start();
     }
+
     virtual ~VncViewer() {};
     void start();
+     unsigned char* bmpData = new unsigned char[1024*1000*5];
+     long long int size ;
     std::string serverIp;
     int serverPort;
     std::thread *vncThread() const;
@@ -71,12 +84,14 @@ public:
     void MouseWheelDown(){
         MouseButton(x,y,rfbButton5Mask,true);
     };
+    void finishedFramebufferUpdate(rfbClient *cl);
+
 private:
+
     int x=0;
     int y=0;
     std::thread *m_vncThread;
     static void finishedFramebufferUpdateStatic(rfbClient *cl);
-    void finishedFramebufferUpdate(rfbClient *cl);
 
 
 

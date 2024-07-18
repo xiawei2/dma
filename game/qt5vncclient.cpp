@@ -38,32 +38,150 @@
 
 
 
+// 假设你已经有了一个函数来获取图像宽度和高度
+int GetImageWidth(rfbClient *client) { return client->width; }
+int GetImageHeight(rfbClient *client) { return client->height; }
+typedef struct {
+    unsigned int biSize;
+    int biWidth;
+    int biHeight;
+    unsigned short biPlanes;
+    unsigned short biBitCount;
+    unsigned int biCompression;
+    unsigned int biSizeImage;
+    int biXPelsPerMeter;
+    int biYPelsPerMeter;
+    unsigned int biClrUsed;
+    unsigned int biClrImportant;
+} DIB_HEADER;
 
 
 void VncViewer::finishedFramebufferUpdateStatic(rfbClient *cl)
 {
     VncViewer *ptr = static_cast<VncViewer*>(rfbClientGetClientData(cl, nullptr));
     ptr->finishedFramebufferUpdate(cl);
+
 }
 
-void VncViewer::finishedFramebufferUpdate(rfbClient *cl)
+void VncViewer::finishedFramebufferUpdate(rfbClient *client)
 {
 
+// 简化为只保存整个帧缓冲区
+    int width = GetImageWidth(client);
+    int height = GetImageHeight(client);
+    rfbPixelFormat *pf = &client->format;
+
+    // 检查是否为24位或32位颜色
+    if (pf->bitsPerPixel != 24 && pf->bitsPerPixel != 32) {
+        rfbClientLog("bpp = %d (!=24 or 32)\n", pf->bitsPerPixel);
+        return ;
+    }
+
+//    FILE *f = fopen("framebuffer.bmp", "wb");
+//    if (!f) {
+//        rfbClientErr("Could not open framebuffer.bmp\n");
+//        return;
+//    }
+
+    // BMP文件头
+    uint8_t bmpFileHeader[14] = {
+            'B', 'M', 0, 0,  0, 0, 0,
+            0,   0,   0, 54, 0, 0, 0 // 54是接下来的信息头的大小（字节）
+    };
+
+    // BMP信息头
+    DIB_HEADER bmpInfoHeader = {
+            sizeof(DIB_HEADER), // 信息头大小
+            width,              // 图像宽度
+            height,             // 图像高度（注意BMP图像是倒序的）
+            1,                  // 颜色平面数
+            24,                 // 每个像素的位数
+            0,                  // 压缩类型（0表示不压缩）
+            static_cast<unsigned int>(width * height * 3), // 图像数据大小（字节）
+            0,
+            0,
+            0,
+            0 // 分辨率和颜色数等（对24位BMP不重要）
+            //        0                     // 重要的颜色数（对24位BMP不重要）
+    };
+
+    // 计算文件大小
+    bmpFileHeader[2] = (uint8_t)(bmpInfoHeader.biSizeImage + 54);
+    bmpFileHeader[3] = (uint8_t)((bmpInfoHeader.biSizeImage + 54) >> 8);
+    bmpFileHeader[4] = (uint8_t)((bmpInfoHeader.biSizeImage + 54) >> 16);
+    bmpFileHeader[5] = (uint8_t)((bmpInfoHeader.biSizeImage + 54) >> 24);
+    // 假设你已经有了bmpFileHeader和bmpInfoHeader的数据
+    // 以及height, width, pf, client->frameBuffer等变量
+
+    // 分配足够的内存以存储BMP数据
+    size_t totalSize = sizeof(bmpFileHeader) + sizeof(bmpInfoHeader) +
+                       height * width * (pf->bitsPerPixel / 8);
+//    std::unique_ptr< char []> bmpData(new char[totalSize]);
+
+    if (bmpData == NULL) {
+        // 处理内存分配失败的情况
+        return ;
+    }
+
+    // 将文件头和信息头复制到内存中
+    memcpy(bmpData, bmpFileHeader, sizeof(bmpFileHeader));
+    memcpy(bmpData + sizeof(bmpFileHeader), &bmpInfoHeader,
+           sizeof(bmpInfoHeader));
+    // 写入像素数据（注意BMP是倒序的）
+    int index = sizeof(bmpFileHeader)+sizeof(bmpInfoHeader)-1;
+    for (int j = height - 1; j >= 0; j--) {
+        for (int i = 0; i < width; i++) {
+            unsigned char *p = client->frameBuffer +
+                               (j * client->width + i) * (pf->bitsPerPixel / 8);
+            // 如果需要处理32位颜色，请忽略alpha通道
+            // 计算像素数据的起始位置
+            bmpData[index++] = p[0]; // 蓝
+            bmpData[index++] = p[1]; // 绿
+            bmpData[index++] = p[2];
+            // 直接写入到内存块中
+        }
+    }
+    this->size = index;
+    // 使用完后记得释放内存
+    return ;
 }
 
 
 void VncViewer::start()
 {
+
     cl = rfbGetClient(8, 3, 4);
-    cl->format.depth = 24;
-    cl->format.depth = 16;
-    cl->format.bitsPerPixel = 16;
-    cl->format.redShift = 11;
-    cl->format.greenShift = 5;
-    cl->format.blueShift = 0;
-    cl->format.redMax = 0x1f;
-    cl->format.greenMax = 0x3f;
-    cl->format.blueMax = 0x1f;
+    int bitsPerSample = 8;
+    int samplesPerPixel = 3;
+    cl->format.depth = bitsPerSample*samplesPerPixel;
+    cl->format.bitsPerPixel = 32;
+    if (cl->format.bitsPerPixel == 8) {
+        cl->format.redMax = 7;
+        cl->format.greenMax = 7;
+        cl->format.blueMax = 3;
+        cl->format.redShift = 0;
+        cl->format.greenShift = 3;
+        cl->format.blueShift = 6;
+    } else {
+        cl->format.redMax = (1 << bitsPerSample) - 1;
+        cl->format.greenMax = (1 << bitsPerSample) - 1;
+        cl->format.blueMax = (1 << bitsPerSample) - 1;
+        if(!cl->format.bigEndian) {
+            cl->format.redShift = 0;
+            cl->format.greenShift = bitsPerSample;
+            cl->format.blueShift = bitsPerSample * 2;
+        } else {
+            if(cl->format.bitsPerPixel==8*3) {
+                cl->format.redShift = bitsPerSample*2;
+                cl->format.greenShift = bitsPerSample*1;
+                cl->format.blueShift = 0;
+            } else {
+                cl->format.redShift = bitsPerSample*3;
+                cl->format.greenShift = bitsPerSample*2;
+                cl->format.blueShift = bitsPerSample;
+            }
+        }
+    }
     cl->appData.compressLevel = 9;
     cl->appData.qualityLevel = 1;
     cl->appData.encodingsString = "tight ultra";
@@ -79,6 +197,7 @@ void VncViewer::start()
         std::cout << "[INFO] disconnected" << std::endl;
         return;
     }
+    size = 53 + cl->width * cl->height * 3;
 
     m_vncThread = new std::thread([this]() {
         while (true) {
