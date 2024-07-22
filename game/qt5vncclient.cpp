@@ -128,16 +128,19 @@ void VncViewer::finishedFramebufferUpdate(rfbClient *client)
     memcpy(bmpData + sizeof(bmpFileHeader), &bmpInfoHeader,
            sizeof(bmpInfoHeader));
     // 写入像素数据（注意BMP是倒序的）
-    int index = sizeof(bmpFileHeader)+sizeof(bmpInfoHeader)-1;
+    int index = sizeof(bmpFileHeader)+sizeof(bmpInfoHeader);
     for (int j = height - 1; j >= 0; j--) {
         for (int i = 0; i < width; i++) {
             unsigned char *p = client->frameBuffer +
                                (j * client->width + i) * (pf->bitsPerPixel / 8);
             // 如果需要处理32位颜色，请忽略alpha通道
+            unsigned char b = (pf->bitsPerPixel == 32) ? p[0] : p[(pf->blueShift >> 3)];
+            unsigned char g = (pf->bitsPerPixel == 32) ? p[1] : p[(pf->greenShift >> 3)];
+            unsigned char r = (pf->bitsPerPixel == 32) ? p[2] : p[(pf->redShift >> 3)];
             // 计算像素数据的起始位置
-            bmpData[index++] = p[0]; // 蓝
-            bmpData[index++] = p[1]; // 绿
-            bmpData[index++] = p[2];
+            bmpData[index++] = b; // 蓝
+            bmpData[index++] = g; // 绿
+            bmpData[index++] = r;
             // 直接写入到内存块中
         }
     }
@@ -198,7 +201,7 @@ void VncViewer::start()
         return;
     }
     size = 53 + cl->width * cl->height * 3;
-
+    bmpData = new unsigned char [size];
     m_vncThread = new std::thread([this]() {
         while (true) {
             int i = WaitForMessage(cl, 500);

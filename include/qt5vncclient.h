@@ -36,8 +36,8 @@ public:
 
     virtual ~VncViewer() {};
     void start();
-     unsigned char* bmpData = new unsigned char[1024*1000*5];
-     long long int size ;
+    unsigned char* bmpData;
+    long long int size ;
     std::string serverIp;
     int serverPort;
     std::thread *vncThread() const;
